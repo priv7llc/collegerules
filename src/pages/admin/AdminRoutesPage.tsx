@@ -22,7 +22,7 @@ const AdminRoutesPage = () => {
 
   const load = async () => {
     let q = supabase.from('routes').select('*').order('updated_at', { ascending: false });
-    if (filter !== 'all') q = q.eq('status', filter);
+    if (filter !== 'all') q = q.eq('status', filter as any);
     const { data } = await q;
     setRoutes(data || []);
     setLoading(false);
