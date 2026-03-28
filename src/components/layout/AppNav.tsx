@@ -24,7 +24,7 @@ export const AppNav = () => {
     { to: '/app/create', icon: PlusCircle, label: 'Create Route' },
     { to: '/app/account', icon: User, label: 'Account' },
     { to: '/app/support', icon: HelpCircle, label: 'Support' },
-    { to: '/pricing', icon: CreditCard, label: 'Buy Credits' },
+    { to: '/app/buy-credits', icon: CreditCard, label: 'Buy Credits' },
   ];
 
   const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (

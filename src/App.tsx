@@ -61,6 +61,7 @@ const App = () => (
               <Route path="route/:routeId" element={<RouteDashboardPage />} />
               <Route path="account" element={<AccountPage />} />
               <Route path="support" element={<SupportPage />} />
+              <Route path="buy-credits" element={<BuyCreditsPage />} />
             </Route>
 
             {/* Admin */}
