@@ -65,14 +65,14 @@ const CreateRoutePage = () => {
       }
 
       // Create route
-      const routeName = `${form.communityCollege} → ${form.destinationUniversity} (${form.major})`;
+      const routeName = `${form.communityCollege} → ${form.major} (${form.majorTrack || 'AS-T'})`;
       const { data: route, error: routeError } = await supabase.from('routes').insert({
         user_id: user.id,
         route_name: routeName,
         community_college: form.communityCollege,
         major: form.major,
-        destination_university: form.destinationUniversity,
-        destination_program: form.destinationProgram || null,
+        destination_university: 'CSU System',
+        destination_program: form.majorTrack || `${form.major} AS-T`,
         transfer_term: form.transferTerm || null,
         status: 'processing' as const,
       }).select().single();
@@ -94,16 +94,29 @@ const CreateRoutePage = () => {
         raw_form_payload: form as unknown as Json,
       });
 
-      // Generate mock dashboard
-      const payload = generateMockDashboard(
-        form.communityCollege, form.major, form.destinationUniversity, form.destinationProgram, form.transferTerm
-      );
+      // Generate dashboard via AI edge function
+      toast.info('Generating your personalized route... This may take 30-60 seconds.');
+
+      const { data: dashData, error: dashError } = await supabase.functions.invoke('generate-route-dashboard', {
+        body: {
+          communityCollege: form.communityCollege,
+          major: form.major,
+          degreeType: form.majorTrack || 'AS-T',
+          state: form.state,
+        },
+      });
+
+      if (dashError || !dashData?.success) {
+        console.error('Dashboard generation error:', dashError, dashData);
+        throw new Error(dashData?.error || dashError?.message || 'Failed to generate dashboard');
+      }
 
       await supabase.from('route_dashboards').insert({
         route_id: route.id,
-        dashboard_payload: payload as unknown as Json,
+        dashboard_payload: dashData.dashboard as unknown as Json,
         version: 1,
-        generated_by: 'mock',
+        generated_by: 'ai',
+        llm_model: 'gemini-2.5-flash',
       });
 
       // Use a credit
