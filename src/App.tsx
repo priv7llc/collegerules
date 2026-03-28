@@ -23,6 +23,7 @@ import CreateRoutePage from "@/pages/app/CreateRoutePage";
 import RouteDashboardPage from "@/pages/app/RouteDashboardPage";
 import AccountPage from "@/pages/app/AccountPage";
 import SupportPage from "@/pages/app/SupportPage";
+import BuyCreditsPage from "@/pages/app/BuyCreditsPage";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="route/:routeId" element={<RouteDashboardPage />} />
               <Route path="account" element={<AccountPage />} />
               <Route path="support" element={<SupportPage />} />
+              <Route path="buy-credits" element={<BuyCreditsPage />} />
             </Route>
 
             {/* Admin */}
