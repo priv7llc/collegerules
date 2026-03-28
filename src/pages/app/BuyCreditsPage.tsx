@@ -138,7 +138,17 @@ const BuyCreditsPage = () => {
         ))}
       </div>
 
-      <p className="text-center mt-8 text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 max-w-sm mx-auto mt-6">
+        <Tag className="h-4 w-4 text-muted-foreground shrink-0" />
+        <Input
+          placeholder="Coupon code"
+          value={couponCode}
+          onChange={(e) => setCouponCode(e.target.value)}
+          className="text-sm"
+        />
+      </div>
+
+      <p className="text-center mt-4 text-xs text-muted-foreground">
         Payments processed securely via Stripe. Always verify requirements with your academic counselor.
       </p>
     </div>
