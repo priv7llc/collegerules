@@ -44,8 +44,6 @@ const BuyCreditsPage = () => {
 
   const handleBuy = async (productCode: string) => {
     if (!user) return;
-
-    const checkoutWindow = window.open('', '_blank');
     setLoading(productCode);
 
     try {
@@ -65,15 +63,14 @@ const BuyCreditsPage = () => {
       if (error) throw error;
       if (!data?.url) throw new Error('No checkout URL returned');
 
-      if (checkoutWindow) {
-        checkoutWindow.location.href = data.url;
+      // Navigate the top-level window to Stripe (works in iframes and mobile)
+      if (window.top) {
+        window.top.location.href = data.url;
       } else {
-        window.location.assign(data.url);
+        window.location.href = data.url;
       }
     } catch (err: any) {
-      checkoutWindow?.close();
       toast.error(err.message || 'Failed to start checkout');
-    } finally {
       setLoading(null);
     }
   };
