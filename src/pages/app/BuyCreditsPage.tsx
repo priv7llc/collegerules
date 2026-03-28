@@ -100,7 +100,7 @@ const BuyCreditsPage = () => {
               <ul className="space-y-2">
                 {features.map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                     {f}
                   </li>
                 ))}
