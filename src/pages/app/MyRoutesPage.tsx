@@ -31,20 +31,43 @@ const MyRoutesPage = () => {
   const [routes, setRoutes] = useState<RouteRecord[]>([]);
   const [credits, setCredits] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const loadData = useCallback(async () => {
+    if (!user) return;
+    const [{ data: routeData }, { data: creditData }] = await Promise.all([
+      supabase.from('routes').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
+      supabase.rpc('get_remaining_credits', { _user_id: user.id }),
+    ]);
+    setRoutes((routeData as RouteRecord[]) || []);
+    setCredits((creditData as number) || 0);
+    setLoading(false);
+  }, [user]);
+
+  // Verify payment on return from Stripe
+  useEffect(() => {
+    if (!user || searchParams.get('payment') !== 'success') return;
+    const verify = async () => {
+      try {
+        const { data } = await supabase.functions.invoke('verify-payment');
+        if (data?.credited > 0) {
+          toast.success(`${data.credited} credit${data.credited > 1 ? 's' : ''} added to your account!`);
+        } else {
+          toast.info('Payment received — credits already applied.');
+        }
+      } catch {
+        toast.error('Could not verify payment. Credits may take a moment to appear.');
+      }
+      // Remove query param and reload data
+      setSearchParams({}, { replace: true });
+      loadData();
+    };
+    verify();
+  }, [user, searchParams, setSearchParams, loadData]);
 
   useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      const [{ data: routeData }, { data: creditData }] = await Promise.all([
-        supabase.from('routes').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
-        supabase.rpc('get_remaining_credits', { _user_id: user.id }),
-      ]);
-      setRoutes((routeData as RouteRecord[]) || []);
-      setCredits((creditData as number) || 0);
-      setLoading(false);
-    };
-    load();
-  }, [user]);
+    loadData();
+  }, [loadData]);
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
