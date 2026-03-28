@@ -41,7 +41,10 @@ const BuyCreditsPage = () => {
 
   const handleBuy = async (productCode: string) => {
     if (!user) return;
+
+    const checkoutWindow = window.open('', '_blank');
     setLoading(productCode);
+
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
@@ -50,15 +53,17 @@ const BuyCreditsPage = () => {
           user_email: user.email,
         },
       });
+
       if (error) throw error;
-      if (data?.url) {
-        // Use _top to escape iframe, fallback to _blank
-        const w = window.open(data.url, '_top');
-        if (!w) window.open(data.url, '_blank');
+      if (!data?.url) throw new Error('No checkout URL returned');
+
+      if (checkoutWindow) {
+        checkoutWindow.location.href = data.url;
       } else {
-        throw new Error('No checkout URL returned');
+        window.location.assign(data.url);
       }
     } catch (err: any) {
+      checkoutWindow?.close();
       toast.error(err.message || 'Failed to start checkout');
     } finally {
       setLoading(null);
