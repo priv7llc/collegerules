@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Route, CreditCard, FolderOpen, Archive } from 'lucide-react';
+import { PlusCircle, Route, CreditCard, FolderOpen, Archive, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface RouteRecord {
   id: string;
@@ -30,20 +31,43 @@ const MyRoutesPage = () => {
   const [routes, setRoutes] = useState<RouteRecord[]>([]);
   const [credits, setCredits] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const loadData = useCallback(async () => {
+    if (!user) return;
+    const [{ data: routeData }, { data: creditData }] = await Promise.all([
+      supabase.from('routes').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
+      supabase.rpc('get_remaining_credits', { _user_id: user.id }),
+    ]);
+    setRoutes((routeData as RouteRecord[]) || []);
+    setCredits((creditData as number) || 0);
+    setLoading(false);
+  }, [user]);
+
+  // Verify payment on return from Stripe
+  useEffect(() => {
+    if (!user || searchParams.get('payment') !== 'success') return;
+    const verify = async () => {
+      try {
+        const { data } = await supabase.functions.invoke('verify-payment');
+        if (data?.credited > 0) {
+          toast.success(`${data.credited} credit${data.credited > 1 ? 's' : ''} added to your account!`);
+        } else {
+          toast.info('Payment received — credits already applied.');
+        }
+      } catch {
+        toast.error('Could not verify payment. Credits may take a moment to appear.');
+      }
+      // Remove query param and reload data
+      setSearchParams({}, { replace: true });
+      loadData();
+    };
+    verify();
+  }, [user, searchParams, setSearchParams, loadData]);
 
   useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      const [{ data: routeData }, { data: creditData }] = await Promise.all([
-        supabase.from('routes').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
-        supabase.rpc('get_remaining_credits', { _user_id: user.id }),
-      ]);
-      setRoutes((routeData as RouteRecord[]) || []);
-      setCredits((creditData as number) || 0);
-      setLoading(false);
-    };
-    load();
-  }, [user]);
+    loadData();
+  }, [loadData]);
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
@@ -62,7 +86,7 @@ const MyRoutesPage = () => {
           {credits > 0 ? (
             <Button asChild><Link to="/app/create"><PlusCircle className="h-4 w-4 mr-2" />Create Route</Link></Button>
           ) : (
-            <Button asChild><Link to="/pricing"><PlusCircle className="h-4 w-4 mr-2" />Buy Credits</Link></Button>
+            <Button asChild><Link to="/app/buy-credits"><PlusCircle className="h-4 w-4 mr-2" />Buy Credits</Link></Button>
           )}
         </div>
       </div>
@@ -80,7 +104,7 @@ const MyRoutesPage = () => {
             {credits > 0 ? (
               <Button asChild><Link to="/app/create">Create Your First Route</Link></Button>
             ) : (
-              <Button asChild><Link to="/pricing">View Pricing</Link></Button>
+              <Button asChild><Link to="/app/buy-credits">View Pricing</Link></Button>
             )}
           </CardContent>
         </Card>
