@@ -52,7 +52,9 @@ const BuyCreditsPage = () => {
       });
       if (error) throw error;
       if (data?.url) {
-        window.location.href = data.url;
+        // Use _top to escape iframe, fallback to _blank
+        const w = window.open(data.url, '_top');
+        if (!w) window.open(data.url, '_blank');
       } else {
         throw new Error('No checkout URL returned');
       }
