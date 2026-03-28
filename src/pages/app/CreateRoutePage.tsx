@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { generateMockDashboard } from '@/lib/mockDashboard';
 import type { Json } from '@/integrations/supabase/types';
 
 const steps = [
