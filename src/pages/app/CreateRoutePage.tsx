@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { generateMockDashboard } from '@/lib/mockDashboard';
 import type { Json } from '@/integrations/supabase/types';
 
 const steps = [
@@ -48,7 +47,7 @@ const CreateRoutePage = () => {
   const canNext = () => {
     if (step === 0) return form.communityCollege.trim().length > 0;
     if (step === 1) return form.major.trim().length > 0;
-    if (step === 2) return form.destinationUniversity.trim().length > 0;
+    if (step === 2) return true; // destination has defaults
     return true;
   };
 
@@ -66,14 +65,14 @@ const CreateRoutePage = () => {
       }
 
       // Create route
-      const routeName = `${form.communityCollege} → ${form.destinationUniversity} (${form.major})`;
+      const routeName = `${form.communityCollege} → ${form.major} (${form.majorTrack || 'AS-T'})`;
       const { data: route, error: routeError } = await supabase.from('routes').insert({
         user_id: user.id,
         route_name: routeName,
         community_college: form.communityCollege,
         major: form.major,
-        destination_university: form.destinationUniversity,
-        destination_program: form.destinationProgram || null,
+        destination_university: 'CSU System',
+        destination_program: form.majorTrack || `${form.major} AS-T`,
         transfer_term: form.transferTerm || null,
         status: 'processing' as const,
       }).select().single();
@@ -95,16 +94,29 @@ const CreateRoutePage = () => {
         raw_form_payload: form as unknown as Json,
       });
 
-      // Generate mock dashboard
-      const payload = generateMockDashboard(
-        form.communityCollege, form.major, form.destinationUniversity, form.destinationProgram, form.transferTerm
-      );
+      // Generate dashboard via AI edge function
+      toast.info('Generating your personalized route... This may take 30-60 seconds.');
+
+      const { data: dashData, error: dashError } = await supabase.functions.invoke('generate-route-dashboard', {
+        body: {
+          communityCollege: form.communityCollege,
+          major: form.major,
+          degreeType: form.majorTrack || 'AS-T',
+          state: form.state,
+        },
+      });
+
+      if (dashError || !dashData?.success) {
+        console.error('Dashboard generation error:', dashError, dashData);
+        throw new Error(dashData?.error || dashError?.message || 'Failed to generate dashboard');
+      }
 
       await supabase.from('route_dashboards').insert({
         route_id: route.id,
-        dashboard_payload: payload as unknown as Json,
+        dashboard_payload: dashData.dashboard as unknown as Json,
         version: 1,
-        generated_by: 'mock',
+        generated_by: 'ai',
+        llm_model: 'gemini-2.5-flash',
       });
 
       // Use a credit
@@ -166,14 +178,31 @@ const CreateRoutePage = () => {
           )}
           {step === 1 && (
             <>
-              <div><Label>Major</Label><Input value={form.major} onChange={e => set('major', e.target.value)} placeholder="e.g., Computer Science" /></div>
-              <div><Label>Major Track (optional)</Label><Input value={form.majorTrack} onChange={e => set('majorTrack', e.target.value)} placeholder="e.g., Software Engineering track" /></div>
+              <div><Label>Major</Label><Input value={form.major} onChange={e => set('major', e.target.value)} placeholder="e.g., Business Administration" /></div>
+              <div>
+                <Label>Degree Type</Label>
+                <Select value={form.majorTrack || 'AS-T'} onValueChange={v => set('majorTrack', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AS-T">AS-T (Associate in Science for Transfer)</SelectItem>
+                    <SelectItem value="AA-T">AA-T (Associate in Arts for Transfer)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </>
           )}
           {step === 2 && (
             <>
-              <div><Label>Destination University</Label><Input value={form.destinationUniversity} onChange={e => set('destinationUniversity', e.target.value)} placeholder="e.g., UC Davis" /></div>
-              <div><Label>Destination Program (optional)</Label><Input value={form.destinationProgram} onChange={e => set('destinationProgram', e.target.value)} placeholder="e.g., Computer Science B.S." /></div>
+              <div><Label>Target Transfer System</Label>
+                <Select value={form.destinationUniversity || 'CSU'} onValueChange={v => set('destinationUniversity', v)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CSU">CSU (California State University)</SelectItem>
+                    <SelectItem value="UC">UC (University of California)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Target Campus (optional)</Label><Input value={form.destinationProgram} onChange={e => set('destinationProgram', e.target.value)} placeholder="e.g., San José State University" /></div>
             </>
           )}
           {step === 3 && (
