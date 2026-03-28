@@ -14,16 +14,559 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          route_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          route_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          route_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_audit_logs_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      articulation_rules: {
+        Row: {
+          catalog_year: string | null
+          created_at: string
+          destination_program_id: string | null
+          id: string
+          last_verified_at: string | null
+          major_name: string | null
+          official_articulation_url: string | null
+          rules_payload: Json | null
+          source_college_id: string | null
+        }
+        Insert: {
+          catalog_year?: string | null
+          created_at?: string
+          destination_program_id?: string | null
+          id?: string
+          last_verified_at?: string | null
+          major_name?: string | null
+          official_articulation_url?: string | null
+          rules_payload?: Json | null
+          source_college_id?: string | null
+        }
+        Update: {
+          catalog_year?: string | null
+          created_at?: string
+          destination_program_id?: string | null
+          id?: string
+          last_verified_at?: string | null
+          major_name?: string | null
+          official_articulation_url?: string | null
+          rules_payload?: Json | null
+          source_college_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articulation_rules_destination_program_id_fkey"
+            columns: ["destination_program_id"]
+            isOneToOne: false
+            referencedRelation: "destination_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articulation_rules_source_college_id_fkey"
+            columns: ["source_college_id"]
+            isOneToOne: false
+            referencedRelation: "source_colleges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          id: string
+          item_key: string
+          route_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+          item_key: string
+          route_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          id?: string
+          item_key?: string
+          route_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_progress_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_progress: {
+        Row: {
+          course_key: string
+          grade: string | null
+          id: string
+          route_id: string
+          status: string
+          term_taken: string | null
+          updated_at: string
+        }
+        Insert: {
+          course_key: string
+          grade?: string | null
+          id?: string
+          route_id: string
+          status?: string
+          term_taken?: string | null
+          updated_at?: string
+        }
+        Update: {
+          course_key?: string
+          grade?: string | null
+          id?: string
+          route_id?: string
+          status?: string
+          term_taken?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_progress_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      destination_programs: {
+        Row: {
+          catalog_year: string | null
+          created_at: string
+          id: string
+          last_verified_at: string | null
+          official_program_url: string | null
+          program_name: string
+          requirements_payload: Json | null
+          university_name: string
+        }
+        Insert: {
+          catalog_year?: string | null
+          created_at?: string
+          id?: string
+          last_verified_at?: string | null
+          official_program_url?: string | null
+          program_name: string
+          requirements_payload?: Json | null
+          university_name: string
+        }
+        Update: {
+          catalog_year?: string | null
+          created_at?: string
+          id?: string
+          last_verified_at?: string | null
+          official_program_url?: string | null
+          program_name?: string
+          requirements_payload?: Json | null
+          university_name?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          id: string
+          name: string
+          price_cents: number
+          route_credits: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          price_cents: number
+          route_credits: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          price_cents?: number
+          route_credits?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      purchases: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          id: string
+          product_code: string
+          status: Database["public"]["Enums"]["purchase_status"]
+          stripe_payment_id: string | null
+          stripe_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          id?: string
+          product_code: string
+          status?: Database["public"]["Enums"]["purchase_status"]
+          stripe_payment_id?: string | null
+          stripe_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          id?: string
+          product_code?: string
+          status?: Database["public"]["Enums"]["purchase_status"]
+          stripe_payment_id?: string | null
+          stripe_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      route_credits: {
+        Row: {
+          created_at: string
+          credits_added: number
+          credits_used: number
+          id: string
+          purchase_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_added?: number
+          credits_used?: number
+          id?: string
+          purchase_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_added?: number
+          credits_used?: number
+          id?: string
+          purchase_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_credits_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      route_dashboards: {
+        Row: {
+          created_at: string
+          dashboard_payload: Json
+          generated_by: string | null
+          id: string
+          llm_model: string | null
+          needs_manual_review: boolean
+          route_id: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          dashboard_payload?: Json
+          generated_by?: string | null
+          id?: string
+          llm_model?: string | null
+          needs_manual_review?: boolean
+          route_id: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          dashboard_payload?: Json
+          generated_by?: string | null
+          id?: string
+          llm_model?: string | null
+          needs_manual_review?: boolean
+          route_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_dashboards_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      route_inputs: {
+        Row: {
+          ap_ib_credits: Json | null
+          completed_courses: Json | null
+          created_at: string
+          gpa: number | null
+          id: string
+          in_progress_courses: Json | null
+          raw_form_payload: Json | null
+          route_id: string
+          student_preferences: Json | null
+        }
+        Insert: {
+          ap_ib_credits?: Json | null
+          completed_courses?: Json | null
+          created_at?: string
+          gpa?: number | null
+          id?: string
+          in_progress_courses?: Json | null
+          raw_form_payload?: Json | null
+          route_id: string
+          student_preferences?: Json | null
+        }
+        Update: {
+          ap_ib_credits?: Json | null
+          completed_courses?: Json | null
+          created_at?: string
+          gpa?: number | null
+          id?: string
+          in_progress_courses?: Json | null
+          raw_form_payload?: Json | null
+          route_id?: string
+          student_preferences?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_inputs_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routes: {
+        Row: {
+          catalog_year: string | null
+          community_college: string | null
+          created_at: string
+          destination_program: string | null
+          destination_university: string | null
+          id: string
+          major: string | null
+          route_name: string | null
+          status: Database["public"]["Enums"]["route_status"]
+          transfer_term: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          catalog_year?: string | null
+          community_college?: string | null
+          created_at?: string
+          destination_program?: string | null
+          destination_university?: string | null
+          id?: string
+          major?: string | null
+          route_name?: string | null
+          status?: Database["public"]["Enums"]["route_status"]
+          transfer_term?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          catalog_year?: string | null
+          community_college?: string | null
+          created_at?: string
+          destination_program?: string | null
+          destination_university?: string | null
+          id?: string
+          major?: string | null
+          route_name?: string | null
+          status?: Database["public"]["Enums"]["route_status"]
+          transfer_term?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      source_colleges: {
+        Row: {
+          active: boolean
+          college_name: string
+          created_at: string
+          id: string
+          state: string | null
+          system: string | null
+        }
+        Insert: {
+          active?: boolean
+          college_name: string
+          created_at?: string
+          id?: string
+          state?: string | null
+          system?: string | null
+        }
+        Update: {
+          active?: boolean
+          college_name?: string
+          created_at?: string
+          id?: string
+          state?: string | null
+          system?: string | null
+        }
+        Relationships: []
+      }
+      source_majors: {
+        Row: {
+          catalog_year: string | null
+          college_id: string | null
+          created_at: string
+          id: string
+          last_verified_at: string | null
+          major_code: string | null
+          major_name: string
+          official_catalog_url: string | null
+          requirements_payload: Json | null
+        }
+        Insert: {
+          catalog_year?: string | null
+          college_id?: string | null
+          created_at?: string
+          id?: string
+          last_verified_at?: string | null
+          major_code?: string | null
+          major_name: string
+          official_catalog_url?: string | null
+          requirements_payload?: Json | null
+        }
+        Update: {
+          catalog_year?: string | null
+          college_id?: string | null
+          created_at?: string
+          id?: string
+          last_verified_at?: string | null
+          major_code?: string | null
+          major_name?: string
+          official_catalog_url?: string | null
+          requirements_payload?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_majors_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "source_colleges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_remaining_credits: { Args: { _user_id: string }; Returns: number }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "student"
+      purchase_status: "pending" | "completed" | "failed" | "refunded"
+      route_status:
+        | "draft"
+        | "processing"
+        | "ready"
+        | "needs_review"
+        | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +693,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "student"],
+      purchase_status: ["pending", "completed", "failed", "refunded"],
+      route_status: [
+        "draft",
+        "processing",
+        "ready",
+        "needs_review",
+        "archived",
+      ],
+    },
   },
 } as const
