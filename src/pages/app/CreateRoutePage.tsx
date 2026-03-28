@@ -47,7 +47,7 @@ const CreateRoutePage = () => {
   const canNext = () => {
     if (step === 0) return form.communityCollege.trim().length > 0;
     if (step === 1) return form.major.trim().length > 0;
-    if (step === 2) return form.destinationUniversity.trim().length > 0;
+    if (step === 2) return true; // destination has defaults
     return true;
   };
 
