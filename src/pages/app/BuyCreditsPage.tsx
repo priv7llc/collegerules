@@ -40,6 +40,8 @@ const BuyCreditsPage = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
 
+  const [couponCode, setCouponCode] = useState('');
+
   const handleBuy = async (productCode: string) => {
     if (!user) return;
 
@@ -47,12 +49,17 @@ const BuyCreditsPage = () => {
     setLoading(productCode);
 
     try {
+      const body: any = {
+        product_code: productCode,
+        user_id: user.id,
+        user_email: user.email,
+      };
+      if (couponCode.trim()) {
+        body.coupon_code = couponCode.trim();
+      }
+
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          product_code: productCode,
-          user_id: user.id,
-          user_email: user.email,
-        },
+        body,
       });
 
       if (error) throw error;
