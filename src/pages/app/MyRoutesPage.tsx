@@ -104,7 +104,7 @@ const MyRoutesPage = () => {
             {credits > 0 ? (
               <Button asChild><Link to="/app/create">Create Your First Route</Link></Button>
             ) : (
-              <Button asChild><Link to="/pricing">View Pricing</Link></Button>
+              <Button asChild><Link to="/app/buy-credits">View Pricing</Link></Button>
             )}
           </CardContent>
         </Card>
