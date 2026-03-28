@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { CheckCircle2, Loader2, Tag } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -39,6 +40,8 @@ const BuyCreditsPage = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
 
+  const [couponCode, setCouponCode] = useState('');
+
   const handleBuy = async (productCode: string) => {
     if (!user) return;
 
@@ -46,12 +49,17 @@ const BuyCreditsPage = () => {
     setLoading(productCode);
 
     try {
+      const body: any = {
+        product_code: productCode,
+        user_id: user.id,
+        user_email: user.email,
+      };
+      if (couponCode.trim()) {
+        body.coupon_code = couponCode.trim();
+      }
+
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          product_code: productCode,
-          user_id: user.id,
-          user_email: user.email,
-        },
+        body,
       });
 
       if (error) throw error;
@@ -130,7 +138,17 @@ const BuyCreditsPage = () => {
         ))}
       </div>
 
-      <p className="text-center mt-8 text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 max-w-sm mx-auto mt-6">
+        <Tag className="h-4 w-4 text-muted-foreground shrink-0" />
+        <Input
+          placeholder="Coupon code"
+          value={couponCode}
+          onChange={(e) => setCouponCode(e.target.value)}
+          className="text-sm"
+        />
+      </div>
+
+      <p className="text-center mt-4 text-xs text-muted-foreground">
         Payments processed securely via Stripe. Always verify requirements with your academic counselor.
       </p>
     </div>
