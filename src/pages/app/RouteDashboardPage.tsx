@@ -31,6 +31,9 @@ const RouteDashboardPage = () => {
 
   useEffect(() => {
     if (!routeId || !user) return;
+    let cancelled = false;
+    let pollTimer: ReturnType<typeof setTimeout> | null = null;
+
     const load = async () => {
       const [{ data: r }, { data: d }, { data: cl }, { data: cp }] = await Promise.all([
         supabase.from('routes').select('*').eq('id', routeId).single(),
@@ -38,6 +41,7 @@ const RouteDashboardPage = () => {
         supabase.from('checklist_progress').select('*').eq('route_id', routeId),
         supabase.from('course_progress').select('*').eq('route_id', routeId),
       ]);
+      if (cancelled) return;
       setRoute(r);
       if (d) setDashboard(d.dashboard_payload as unknown as DashboardPayload);
       const clMap: Record<string, boolean> = {};
@@ -47,8 +51,15 @@ const RouteDashboardPage = () => {
       cp?.forEach((c: any) => { cpMap[c.course_key] = c.status; });
       setCourseStatus(cpMap);
       setLoading(false);
+
+      // If still processing, poll every 5 seconds
+      if (r && r.status === 'processing' && !d) {
+        pollTimer = setTimeout(() => { if (!cancelled) load(); }, 5000);
+      }
     };
     load();
+
+    return () => { cancelled = true; if (pollTimer) clearTimeout(pollTimer); };
   }, [routeId, user]);
 
   const toggleChecklist = useCallback(async (key: string) => {
@@ -69,9 +80,20 @@ const RouteDashboardPage = () => {
   }, [routeId]);
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
+
+  if (route && route.status === 'processing' && !dashboard) return (
+    <div className="text-center py-12 space-y-4">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto" />
+      <h2 className="text-lg font-semibold">Generating Your Route...</h2>
+      <p className="text-muted-foreground text-sm max-w-md mx-auto">
+        Our AI is building your personalized transfer dashboard. This usually takes 30–60 seconds.
+      </p>
+    </div>
+  );
+
   if (!route || !dashboard) return (
     <div className="text-center py-12">
-      <p className="text-muted-foreground">Route not found or still processing.</p>
+      <p className="text-muted-foreground">{route?.status === 'needs_review' ? 'Route generation encountered an issue. Please contact support or try again.' : 'Route not found.'}</p>
       <Button asChild className="mt-4"><Link to="/app">Back to Routes</Link></Button>
     </div>
   );

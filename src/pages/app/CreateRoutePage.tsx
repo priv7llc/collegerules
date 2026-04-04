@@ -94,52 +94,19 @@ const CreateRoutePage = () => {
         raw_form_payload: form as unknown as Json,
       });
 
-      // Generate dashboard via AI edge function
-      toast.info('Generating your personalized route... This may take 30-60 seconds.');
-
-      const { data: dashData, error: dashError } = await supabase.functions.invoke('generate-route-dashboard', {
+      // Fire-and-forget: trigger AI generation in background
+      supabase.functions.invoke('generate-route-dashboard', {
         body: {
           communityCollege: form.communityCollege,
           major: form.major,
           degreeType: form.majorTrack || 'AS-T',
           state: form.state,
+          routeId: route.id,
+          userId: user.id,
         },
-      });
+      }).catch(err => console.error('Edge function invoke error:', err));
 
-      if (dashError || !dashData?.success) {
-        console.error('Dashboard generation error:', dashError, dashData);
-        throw new Error(dashData?.error || dashError?.message || 'Failed to generate dashboard');
-      }
-
-      await supabase.from('route_dashboards').insert({
-        route_id: route.id,
-        dashboard_payload: dashData.dashboard as unknown as Json,
-        version: 1,
-        generated_by: 'ai',
-        llm_model: 'gemini-2.5-flash',
-      });
-
-      // Use a credit
-      const { data: creditRecords } = await supabase
-        .from('route_credits')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
-
-      if (creditRecords) {
-        for (const cr of creditRecords) {
-          const available = cr.credits_added - cr.credits_used;
-          if (available > 0) {
-            await supabase.from('route_credits').update({ credits_used: cr.credits_used + 1 }).eq('id', cr.id);
-            break;
-          }
-        }
-      }
-
-      // Mark ready
-      await supabase.from('routes').update({ status: 'ready' as const }).eq('id', route.id);
-
-      toast.success('Route created! Your dashboard is ready.');
+      toast.info('Your route is being generated! This usually takes 30-60 seconds.');
       navigate(`/app/route/${route.id}`);
     } catch (err: any) {
       toast.error(err.message || 'Failed to create route');

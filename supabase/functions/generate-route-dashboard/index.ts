@@ -5,33 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-async function scrapeUrl(url: string, apiKey: string): Promise<string> {
-  try {
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url,
-        formats: ['markdown'],
-        onlyMainContent: true,
-        waitFor: 3000,
-      }),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      console.error(`Firecrawl error for ${url}:`, data);
-      return '';
-    }
-    return data?.data?.markdown || data?.markdown || '';
-  } catch (err) {
-    console.error(`Failed to scrape ${url}:`, err);
-    return '';
-  }
-}
-
 async function searchFirecrawl(query: string, apiKey: string): Promise<string> {
   try {
     const response = await fetch('https://api.firecrawl.dev/v1/search', {
@@ -59,57 +32,39 @@ async function searchFirecrawl(query: string, apiKey: string): Promise<string> {
   }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+async function generateDashboard(
+  communityCollege: string,
+  major: string,
+  degreeType: string,
+  state: string,
+  routeId: string,
+  userId: string,
+) {
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
 
   try {
-    const { communityCollege, major, degreeType, state } = await req.json();
-
-    if (!communityCollege || !major) {
-      return new Response(
-        JSON.stringify({ error: 'communityCollege and major are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!lovableApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'AI service not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    if (!lovableApiKey) throw new Error('AI service not configured');
 
-    // Step 1: Scrape relevant sources
-    console.log(`Generating dashboard for ${communityCollege} - ${major} (${degreeType || 'AS-T'})`);
+    console.log(`Generating dashboard for ${communityCollege} - ${major} (${degreeType})`);
 
     let scrapedContent = '';
-
     if (firecrawlKey) {
-      // Search for the college's catalog page for this specific degree
-      const collegeName = communityCollege.toLowerCase().replace(/\s+/g, '-');
-      
-      const scrapePromises = [
-        // Search for the specific AS-T/degree program
-        searchFirecrawl(`${communityCollege} ${major} ${degreeType || 'AS-T'} degree requirements catalog`, firecrawlKey),
-        // Search for Cal-GETC requirements at this college
+      const results = await Promise.all([
+        searchFirecrawl(`${communityCollege} ${major} ${degreeType} degree requirements catalog`, firecrawlKey),
         searchFirecrawl(`${communityCollege} Cal-GETC general education requirements`, firecrawlKey),
-        // Search ASSIST.org articulation
         searchFirecrawl(`site:assist.org ${communityCollege} ${major} articulation`, firecrawlKey),
-        // Search for transfer info
         searchFirecrawl(`${communityCollege} transfer center CSU requirements`, firecrawlKey),
-      ];
-
-      const results = await Promise.all(scrapePromises);
+      ]);
       scrapedContent = results.filter(Boolean).join('\n\n=== SOURCE BREAK ===\n\n');
       console.log(`Scraped ${scrapedContent.length} chars of content`);
     }
 
-    // Step 2: Generate dashboard with AI
     const dt = degreeType || 'AS-T';
     const systemPrompt = `You are an expert California community college transfer counselor. You generate detailed, accurate transfer route dashboards for students pursuing Associate Degrees for Transfer (ADT).
 
@@ -253,7 +208,6 @@ Return a JSON object with this exact structure:
 
 IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no explanation. Just the JSON object.`;
 
-    // Call AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -274,10 +228,7 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no explanation. 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error('AI API error:', aiResponse.status, errText);
-      return new Response(
-        JSON.stringify({ error: `AI generation failed: ${aiResponse.status}` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      throw new Error(`AI generation failed: ${aiResponse.status}`);
     }
 
     const aiData = await aiResponse.json();
@@ -285,34 +236,85 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no explanation. 
 
     if (!content) {
       console.error('No content in AI response:', aiData);
+      throw new Error('AI returned empty response');
+    }
+
+    const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const dashboard = JSON.parse(cleaned);
+
+    // Save dashboard to DB
+    await supabaseAdmin.from('route_dashboards').insert({
+      route_id: routeId,
+      dashboard_payload: dashboard,
+      version: 1,
+      generated_by: 'ai',
+      llm_model: 'gemini-3-flash-preview',
+    });
+
+    // Deduct a credit
+    const { data: creditRecords } = await supabaseAdmin
+      .from('route_credits')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
+
+    if (creditRecords) {
+      for (const cr of creditRecords) {
+        const available = cr.credits_added - cr.credits_used;
+        if (available > 0) {
+          await supabaseAdmin.from('route_credits').update({ credits_used: cr.credits_used + 1 }).eq('id', cr.id);
+          break;
+        }
+      }
+    }
+
+    // Mark route as ready
+    await supabaseAdmin.from('routes').update({ status: 'ready' }).eq('id', routeId);
+    console.log('Dashboard generated and saved successfully for route', routeId);
+
+  } catch (error) {
+    console.error('Error generating dashboard:', error);
+    // Mark route as needs_review so user knows it failed
+    await supabaseAdmin.from('routes').update({ status: 'needs_review' }).eq('id', routeId);
+  }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { communityCollege, major, degreeType, state, routeId, userId } = await req.json();
+
+    if (!communityCollege || !major || !routeId || !userId) {
       return new Response(
-        JSON.stringify({ error: 'AI returned empty response' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'communityCollege, major, routeId, and userId are required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Parse the JSON
-    let dashboard;
-    try {
-      // Strip any markdown code fences if present
-      const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      dashboard = JSON.parse(cleaned);
-    } catch (parseErr) {
-      console.error('Failed to parse AI JSON:', parseErr, content.substring(0, 500));
-      return new Response(
-        JSON.stringify({ error: 'Failed to parse AI response as JSON' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Fire and forget — do the work in the background
+    // Use EdgeRuntime.waitUntil-style pattern: start the promise but respond immediately
+    const work = generateDashboard(
+      communityCollege,
+      major,
+      degreeType || 'AS-T',
+      state || 'California',
+      routeId,
+      userId,
+    );
 
-    console.log('Dashboard generated successfully');
+    // Don't await — let it run in the background while we respond
+    // Deno will keep the isolate alive for the promise
+    work.catch(err => console.error('Background generation failed:', err));
 
     return new Response(
-      JSON.stringify({ success: true, dashboard }),
+      JSON.stringify({ success: true, status: 'processing' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error generating dashboard:', error);
+    console.error('Error in request handler:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
