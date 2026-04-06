@@ -26,6 +26,7 @@ const CreateRoutePage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [createdRouteId, setCreatedRouteId] = useState<string | null>(null);
   const [form, setForm] = useState({
     communityCollege: '',
     state: 'California',
@@ -107,13 +108,38 @@ const CreateRoutePage = () => {
       }).catch(err => console.error('Edge function invoke error:', err));
 
       toast.info('Your route is being generated! This usually takes 30-60 seconds.');
-      navigate(`/app/route/${route.id}`);
+      setCreatedRouteId(route.id);
     } catch (err: any) {
       toast.error(err.message || 'Failed to create route');
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (createdRouteId) {
+    return (
+      <div className="max-w-xl mx-auto animate-fade-in text-center py-12">
+        <div className="flex justify-center mb-6">
+          <div className="h-16 w-16 rounded-full bg-success/20 flex items-center justify-center">
+            <Check className="h-8 w-8 text-success" />
+          </div>
+        </div>
+        <h1 className="text-2xl font-display font-bold mb-2">Route Created!</h1>
+        <p className="text-muted-foreground mb-6">
+          Your transfer route is being generated. This usually takes 30–60 seconds.
+          Head to your route dashboard to watch it come together.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button size="lg" onClick={() => navigate(`/app/route/${createdRouteId}`)}>
+            Go to Route Dashboard <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+          <Button variant="outline" size="lg" onClick={() => navigate('/app/routes')}>
+            View All Routes
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
