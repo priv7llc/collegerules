@@ -108,7 +108,7 @@ const CreateRoutePage = () => {
       }).catch(err => console.error('Edge function invoke error:', err));
 
       toast.info('Your route is being generated! This usually takes 30-60 seconds.');
-      navigate(`/app/route/${route.id}`);
+      setCreatedRouteId(route.id);
     } catch (err: any) {
       toast.error(err.message || 'Failed to create route');
     } finally {
