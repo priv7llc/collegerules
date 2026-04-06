@@ -26,6 +26,7 @@ const CreateRoutePage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [createdRouteId, setCreatedRouteId] = useState<string | null>(null);
   const [form, setForm] = useState({
     communityCollege: '',
     state: 'California',
