@@ -1,5 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.100.1";
 
+declare const EdgeRuntime: {
+  waitUntil: (promise: Promise<unknown>) => void;
+};
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -294,8 +298,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fire and forget — do the work in the background
-    // Use EdgeRuntime.waitUntil-style pattern: start the promise but respond immediately
+    console.log('Received dashboard generation request for route', routeId);
+
     const work = generateDashboard(
       communityCollege,
       major,
@@ -305,9 +309,8 @@ Deno.serve(async (req) => {
       userId,
     );
 
-    // Don't await — let it run in the background while we respond
-    // Deno will keep the isolate alive for the promise
     work.catch(err => console.error('Background generation failed:', err));
+    EdgeRuntime.waitUntil(work);
 
     return new Response(
       JSON.stringify({ success: true, status: 'processing' }),
