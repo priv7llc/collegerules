@@ -559,6 +559,66 @@ export type Database = {
           },
         ]
       }
+      scholarship_candidates: {
+        Row: {
+          amount_cents: number | null
+          confidence_score: number | null
+          created_at: string
+          deadline: string | null
+          description: string | null
+          eligibility_criteria: Json
+          essay_prompts: Json
+          external_url: string | null
+          id: string
+          name: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_query: string | null
+          source_url: string | null
+          sponsor: string | null
+          status: Database["public"]["Enums"]["candidate_status"]
+        }
+        Insert: {
+          amount_cents?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          eligibility_criteria?: Json
+          essay_prompts?: Json
+          external_url?: string | null
+          id?: string
+          name: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_query?: string | null
+          source_url?: string | null
+          sponsor?: string | null
+          status?: Database["public"]["Enums"]["candidate_status"]
+        }
+        Update: {
+          amount_cents?: number | null
+          confidence_score?: number | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          eligibility_criteria?: Json
+          essay_prompts?: Json
+          external_url?: string | null
+          id?: string
+          name?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_query?: string | null
+          source_url?: string | null
+          sponsor?: string | null
+          status?: Database["public"]["Enums"]["candidate_status"]
+        }
+        Relationships: []
+      }
       scholarships: {
         Row: {
           active: boolean
@@ -732,6 +792,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "student"
+      candidate_status: "pending" | "approved" | "rejected" | "duplicate"
       purchase_status: "pending" | "completed" | "failed" | "refunded"
       route_status:
         | "draft"
@@ -868,6 +929,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "student"],
+      candidate_status: ["pending", "approved", "rejected", "duplicate"],
       purchase_status: ["pending", "completed", "failed", "refunded"],
       route_status: [
         "draft",

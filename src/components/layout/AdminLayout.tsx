@@ -1,6 +1,6 @@
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, LayoutDashboard, Users, CreditCard, Route, Database, FileText, LogOut, ArrowLeft } from 'lucide-react';
+import { GraduationCap, LayoutDashboard, Users, CreditCard, Route, Database, FileText, LogOut, ArrowLeft, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const adminNav = [
@@ -8,6 +8,7 @@ const adminNav = [
   { to: '/admin/users', icon: Users, label: 'Users' },
   { to: '/admin/purchases', icon: CreditCard, label: 'Purchases' },
   { to: '/admin/routes', icon: Route, label: 'Routes' },
+  { to: '/admin/scholarships', icon: Award, label: 'Scholarships' },
   { to: '/admin/sources', icon: Database, label: 'Sources' },
   { to: '/admin/audit', icon: FileText, label: 'Audit Log' },
 ];
