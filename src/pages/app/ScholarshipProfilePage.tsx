@@ -64,6 +64,7 @@ const ScholarshipProfilePage = () => {
     religion: '',
     pell_grant_eligible: false,
     household_income_range: '',
+    expected_family_contribution: '',
     single_parent_household: false,
     current_gpa: '',
     intended_major: '',
@@ -105,6 +106,7 @@ const ScholarshipProfilePage = () => {
           religion: profile.religion ?? '',
           pell_grant_eligible: !!profile.pell_grant_eligible,
           household_income_range: profile.household_income_range ?? '',
+          expected_family_contribution: profile.expected_family_contribution_cents != null ? String(profile.expected_family_contribution_cents / 100) : '',
           single_parent_household: !!profile.single_parent_household,
           current_gpa: profile.current_gpa?.toString() ?? '',
           intended_major: profile.intended_major ?? '',
@@ -182,6 +184,7 @@ const ScholarshipProfilePage = () => {
         religion: form.religion || null,
         pell_grant_eligible: form.pell_grant_eligible,
         household_income_range: form.household_income_range || null,
+        expected_family_contribution_cents: form.expected_family_contribution ? Math.round(parseFloat(form.expected_family_contribution) * 100) : null,
         single_parent_household: form.single_parent_household,
         current_gpa: form.current_gpa ? parseFloat(form.current_gpa) : null,
         intended_major: form.intended_major || null,
@@ -328,6 +331,11 @@ const ScholarshipProfilePage = () => {
                 </Select>
               </div>
               <div className="flex items-center justify-between"><Label>Single-parent household</Label><Switch checked={form.single_parent_household} onCheckedChange={v => set('single_parent_household', v)} /></div>
+              <div>
+                <Label>Expected Family Contribution (EFC)</Label>
+                <Input type="number" min="0" placeholder="e.g., 5000" value={form.expected_family_contribution} onChange={e => set('expected_family_contribution', e.target.value)} />
+                <p className="text-xs text-muted-foreground mt-1">From your FAFSA Student Aid Index. Leave blank if you don't know — we'll estimate from your income range.</p>
+              </div>
             </>
           )}
 

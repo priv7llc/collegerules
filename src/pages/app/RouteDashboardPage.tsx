@@ -11,8 +11,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   ArrowLeft, BookOpen, CheckCircle2, AlertTriangle, Info, ExternalLink,
   GraduationCap, Calendar, Target, Shield, Clock, Monitor, Home,
-  List, BookMarked, Route, Landmark, Link2
+  List, BookMarked, Route, Landmark, Link2, Wallet, Trophy, ClipboardList, UserCog
 } from 'lucide-react';
+import { AffordabilityTab } from '@/components/AffordabilityTab';
 import type { DashboardPayload } from '@/lib/dashboardTypes';
 
 const iconMap: Record<string, any> = {
@@ -153,6 +154,7 @@ const RouteDashboardPage = () => {
         <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-transparent p-0 border-b rounded-none pb-0">
           {[
             { value: 'overview', label: 'Overview', icon: Home },
+            { value: 'affordability', label: 'Affordability', icon: Wallet },
             { value: 'major-courses', label: 'Major Courses', icon: List },
             { value: 'cal-getc', label: 'Cal-GETC / GE', icon: BookMarked },
             { value: 'course-sequence', label: 'Course Sequence', icon: Calendar },
@@ -242,6 +244,11 @@ const RouteDashboardPage = () => {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        {/* ===== AFFORDABILITY TAB ===== */}
+        <TabsContent value="affordability" className="space-y-6 mt-6">
+          <AffordabilityTab routeId={routeId!} destinationUniversity={route?.destination_university || ''} />
         </TabsContent>
 
         {/* ===== MAJOR COURSES TAB ===== */}
