@@ -44,9 +44,11 @@ type Candidate = {
   essay_prompts: any;
   status: string;
   created_at?: string;
+  discovered_for_user_id?: string | null;
 };
 
 type SortKey = 'relevance' | 'confidence' | 'newest' | 'closing';
+type SourceFilter = 'all' | 'catalog' | 'personal';
 
 const fmtMoney = (cents?: number | null) =>
   cents == null ? '—' : `$${(cents / 100).toLocaleString()}`;
@@ -72,6 +74,8 @@ export default function AdminScholarshipsPage() {
 
   const [sortKey, setSortKey] = useState<SortKey>('relevance');
   const [hideLowRelevance, setHideLowRelevance] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
 
   const [editScholarship, setEditScholarship] = useState<Partial<Scholarship> | null>(null);
   const [editCandidate, setEditCandidate] = useState<Candidate | null>(null);
@@ -87,7 +91,19 @@ export default function AdminScholarshipsPage() {
     if (sRes.error) toast.error('Failed to load scholarships');
     else setScholarships(sRes.data as Scholarship[]);
     if (cRes.error) toast.error('Failed to load candidates');
-    else setCandidates(cRes.data as Candidate[]);
+    else {
+      const cands = cRes.data as Candidate[];
+      setCandidates(cands);
+      const userIds = Array.from(new Set(cands.map(c => c.discovered_for_user_id).filter(Boolean) as string[]));
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase.from('profiles').select('id, email').in('id', userIds);
+        const map: Record<string, string> = {};
+        (profiles || []).forEach((p: any) => { if (p.email) map[p.id] = p.email; });
+        setUserEmails(map);
+      } else {
+        setUserEmails({});
+      }
+    }
     setLoading(false);
   }
 
@@ -98,6 +114,8 @@ export default function AdminScholarshipsPage() {
   const visibleCandidates = useMemo(() => {
     let list = [...candidates];
     if (hideLowRelevance) list = list.filter(c => (c.relevance_score ?? 0) >= 0.7);
+    if (sourceFilter === 'catalog') list = list.filter(c => !c.discovered_for_user_id);
+    else if (sourceFilter === 'personal') list = list.filter(c => !!c.discovered_for_user_id);
     list.sort((a, b) => {
       switch (sortKey) {
         case 'relevance':
@@ -115,7 +133,7 @@ export default function AdminScholarshipsPage() {
       }
     });
     return list;
-  }, [candidates, sortKey, hideLowRelevance]);
+  }, [candidates, sortKey, hideLowRelevance, sourceFilter]);
 
   async function runDiscovery() {
     setRunning(true);
@@ -266,6 +284,14 @@ export default function AdminScholarshipsPage() {
                 <Switch id="hide-low" checked={hideLowRelevance} onCheckedChange={setHideLowRelevance} />
                 <Label htmlFor="hide-low" className="text-sm cursor-pointer">Hide relevance &lt; 70%</Label>
               </div>
+              <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as SourceFilter)}>
+                <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  <SelectItem value="catalog">Catalog Only</SelectItem>
+                  <SelectItem value="personal">Personal Discoveries</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
                 <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -291,14 +317,15 @@ export default function AdminScholarshipsPage() {
                   <TableHead>Deadline</TableHead>
                   <TableHead>Scores</TableHead>
                   <TableHead>Source</TableHead>
+                  <TableHead>Source URL</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="inline h-4 w-4 animate-spin" /></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center py-8"><Loader2 className="inline h-4 w-4 animate-spin" /></TableCell></TableRow>
                 ) : visibleCandidates.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No pending candidates. Run discovery to find more.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No pending candidates. Run discovery to find more.</TableCell></TableRow>
                 ) : visibleCandidates.map(c => {
                   const rel = c.relevance_score ?? 0;
                   const conf = c.confidence_score ?? 0;
@@ -323,6 +350,11 @@ export default function AdminScholarshipsPage() {
                             C {(conf * 100).toFixed(0)}%
                           </Badge>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {c.discovered_for_user_id
+                          ? <span className="text-accent">{userEmails[c.discovered_for_user_id] || 'Personal discovery'}</span>
+                          : <span className="text-muted-foreground">Catalog Discovery</span>}
                       </TableCell>
                       <TableCell className="max-w-[180px] truncate">
                         {c.source_url ? <a href={c.source_url} target="_blank" rel="noreferrer" className="text-accent underline text-xs">{c.source_url}</a> : '—'}

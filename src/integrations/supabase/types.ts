@@ -566,6 +566,7 @@ export type Database = {
           created_at: string
           deadline: string | null
           description: string | null
+          discovered_for_user_id: string | null
           eligibility_criteria: Json
           essay_prompts: Json
           external_url: string | null
@@ -587,6 +588,7 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           description?: string | null
+          discovered_for_user_id?: string | null
           eligibility_criteria?: Json
           essay_prompts?: Json
           external_url?: string | null
@@ -608,6 +610,7 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           description?: string | null
+          discovered_for_user_id?: string | null
           eligibility_criteria?: Json
           essay_prompts?: Json
           external_url?: string | null
@@ -894,6 +897,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_discovery_runs: {
+        Row: {
+          id: string
+          query_count: number
+          ran_at: string
+          results_count: number
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          query_count?: number
+          ran_at?: string
+          results_count?: number
+          user_id: string
+        }
+        Update: {
+          id?: string
+          query_count?: number
+          ran_at?: string
+          results_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -937,6 +964,7 @@ export type Database = {
           essay_prompts: Json
           external_url: string
           id: string
+          is_personal_discovery: boolean
           match_reasons: string[]
           match_score: number
           name: string
@@ -944,6 +972,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      user_discovery_runs_today: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "student"
