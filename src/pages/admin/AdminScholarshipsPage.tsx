@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,10 +38,15 @@ type Candidate = {
   source_url: string | null;
   source_query: string | null;
   confidence_score: number | null;
+  relevance_score: number | null;
+  relevance_reasoning: string | null;
   eligibility_criteria: any;
   essay_prompts: any;
   status: string;
+  created_at?: string;
 };
+
+type SortKey = 'relevance' | 'confidence' | 'newest' | 'closing';
 
 const fmtMoney = (cents?: number | null) =>
   cents == null ? '—' : `$${(cents / 100).toLocaleString()}`;
@@ -63,6 +70,9 @@ export default function AdminScholarshipsPage() {
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
 
+  const [sortKey, setSortKey] = useState<SortKey>('relevance');
+  const [hideLowRelevance, setHideLowRelevance] = useState(false);
+
   const [editScholarship, setEditScholarship] = useState<Partial<Scholarship> | null>(null);
   const [editCandidate, setEditCandidate] = useState<Candidate | null>(null);
   const [rejectingId, setRejectingId] = useState<string | null>(null);
@@ -85,12 +95,35 @@ export default function AdminScholarshipsPage() {
     loadAll();
   }, []);
 
+  const visibleCandidates = useMemo(() => {
+    let list = [...candidates];
+    if (hideLowRelevance) list = list.filter(c => (c.relevance_score ?? 0) >= 0.7);
+    list.sort((a, b) => {
+      switch (sortKey) {
+        case 'relevance':
+          return (b.relevance_score ?? 0) - (a.relevance_score ?? 0);
+        case 'confidence':
+          return (b.confidence_score ?? 0) - (a.confidence_score ?? 0);
+        case 'closing': {
+          const ad = a.deadline ? new Date(a.deadline).getTime() : Number.POSITIVE_INFINITY;
+          const bd = b.deadline ? new Date(b.deadline).getTime() : Number.POSITIVE_INFINITY;
+          return ad - bd;
+        }
+        case 'newest':
+        default:
+          return (b.created_at || '').localeCompare(a.created_at || '');
+      }
+    });
+    return list;
+  }, [candidates, sortKey, hideLowRelevance]);
+
   async function runDiscovery() {
     setRunning(true);
     try {
       const { data, error } = await supabase.functions.invoke('discover-scholarships', { body: {} });
       if (error) throw error;
-      toast.success(`Discovery started for ${data?.categories ?? '?'} categories. Results will appear shortly.`);
+      const n = data?.queries ?? data?.categories ?? '?';
+      toast.success(`Discovery started for ${n} queries. Results will appear shortly.`);
       setTimeout(() => loadAll(), 8000);
     } catch (err: any) {
       toast.error(`Discovery failed: ${err?.message || 'unknown error'}`);
@@ -224,22 +257,39 @@ export default function AdminScholarshipsPage() {
         </TabsContent>
 
         <TabsContent value="queue" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <p className="text-sm text-muted-foreground">{candidates.length} pending candidates</p>
-            <Button onClick={runDiscovery} disabled={running} size="lg">
-              {running ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-              {running ? 'Running…' : 'Run Discovery Now'}
-            </Button>
+          <div className="flex flex-wrap gap-3 justify-between items-center">
+            <p className="text-sm text-muted-foreground">
+              {visibleCandidates.length} of {candidates.length} pending candidates
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Switch id="hide-low" checked={hideLowRelevance} onCheckedChange={setHideLowRelevance} />
+                <Label htmlFor="hide-low" className="text-sm cursor-pointer">Hide relevance &lt; 70%</Label>
+              </div>
+              <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+                <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="relevance">Highest Relevance</SelectItem>
+                  <SelectItem value="confidence">Highest Confidence</SelectItem>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="closing">Closing Soonest</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button onClick={runDiscovery} disabled={running} size="lg">
+                {running ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                {running ? 'Running…' : 'Run Discovery Now'}
+              </Button>
+            </div>
           </div>
           <div className="border rounded-md bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Name & Description</TableHead>
                   <TableHead>Sponsor</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Deadline</TableHead>
-                  <TableHead>Confidence</TableHead>
+                  <TableHead>Scores</TableHead>
                   <TableHead>Source</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -247,29 +297,44 @@ export default function AdminScholarshipsPage() {
               <TableBody>
                 {loading ? (
                   <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="inline h-4 w-4 animate-spin" /></TableCell></TableRow>
-                ) : candidates.length === 0 ? (
+                ) : visibleCandidates.length === 0 ? (
                   <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No pending candidates. Run discovery to find more.</TableCell></TableRow>
-                ) : candidates.map(c => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-medium max-w-xs">{c.name}</TableCell>
-                    <TableCell>{c.sponsor || '—'}</TableCell>
-                    <TableCell>{fmtMoney(c.amount_cents)}</TableCell>
-                    <TableCell>{c.deadline || '—'}</TableCell>
-                    <TableCell>
-                      <Badge variant={(c.confidence_score ?? 0) >= 0.8 ? 'default' : 'secondary'}>
-                        {((c.confidence_score ?? 0) * 100).toFixed(0)}%
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-[180px] truncate">
-                      {c.source_url ? <a href={c.source_url} target="_blank" rel="noreferrer" className="text-accent underline text-xs">{c.source_url}</a> : '—'}
-                    </TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <Button size="sm" onClick={() => approveCandidate(c)}><Check className="h-3 w-3" /></Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditCandidate(c)}><Pencil className="h-3 w-3" /></Button>
-                      <Button size="sm" variant="destructive" onClick={() => { setRejectingId(c.id); setRejectReason(''); }}><X className="h-3 w-3" /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                ) : visibleCandidates.map(c => {
+                  const rel = c.relevance_score ?? 0;
+                  const conf = c.confidence_score ?? 0;
+                  return (
+                    <TableRow key={c.id}>
+                      <TableCell className="max-w-md">
+                        <div className="font-medium">{c.name}</div>
+                        {c.description && <div className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{c.description}</div>}
+                        {c.relevance_reasoning && (
+                          <div className="text-xs italic text-muted-foreground mt-1">↳ {c.relevance_reasoning}</div>
+                        )}
+                      </TableCell>
+                      <TableCell>{c.sponsor || '—'}</TableCell>
+                      <TableCell>{fmtMoney(c.amount_cents)}</TableCell>
+                      <TableCell>{c.deadline || '—'}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <Badge variant={rel >= 0.7 ? 'default' : 'secondary'} title="Relevance">
+                            R {(rel * 100).toFixed(0)}%
+                          </Badge>
+                          <Badge variant={conf >= 0.8 ? 'default' : 'outline'} title="Confidence">
+                            C {(conf * 100).toFixed(0)}%
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[180px] truncate">
+                        {c.source_url ? <a href={c.source_url} target="_blank" rel="noreferrer" className="text-accent underline text-xs">{c.source_url}</a> : '—'}
+                      </TableCell>
+                      <TableCell className="text-right space-x-1">
+                        <Button size="sm" onClick={() => approveCandidate(c)}><Check className="h-3 w-3" /></Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditCandidate(c)}><Pencil className="h-3 w-3" /></Button>
+                        <Button size="sm" variant="destructive" onClick={() => { setRejectingId(c.id); setRejectReason(''); }}><X className="h-3 w-3" /></Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
