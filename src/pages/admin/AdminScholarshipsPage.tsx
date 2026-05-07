@@ -317,14 +317,15 @@ export default function AdminScholarshipsPage() {
                   <TableHead>Deadline</TableHead>
                   <TableHead>Scores</TableHead>
                   <TableHead>Source</TableHead>
+                  <TableHead>Source URL</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow><TableCell colSpan={7} className="text-center py-8"><Loader2 className="inline h-4 w-4 animate-spin" /></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center py-8"><Loader2 className="inline h-4 w-4 animate-spin" /></TableCell></TableRow>
                 ) : visibleCandidates.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No pending candidates. Run discovery to find more.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No pending candidates. Run discovery to find more.</TableCell></TableRow>
                 ) : visibleCandidates.map(c => {
                   const rel = c.relevance_score ?? 0;
                   const conf = c.confidence_score ?? 0;
