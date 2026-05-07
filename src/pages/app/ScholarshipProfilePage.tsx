@@ -64,6 +64,7 @@ const ScholarshipProfilePage = () => {
     religion: '',
     pell_grant_eligible: false,
     household_income_range: '',
+    expected_family_contribution: '',
     single_parent_household: false,
     current_gpa: '',
     intended_major: '',
