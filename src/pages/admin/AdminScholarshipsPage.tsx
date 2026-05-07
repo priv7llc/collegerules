@@ -284,6 +284,14 @@ export default function AdminScholarshipsPage() {
                 <Switch id="hide-low" checked={hideLowRelevance} onCheckedChange={setHideLowRelevance} />
                 <Label htmlFor="hide-low" className="text-sm cursor-pointer">Hide relevance &lt; 70%</Label>
               </div>
+              <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as SourceFilter)}>
+                <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  <SelectItem value="catalog">Catalog Only</SelectItem>
+                  <SelectItem value="personal">Personal Discoveries</SelectItem>
+                </SelectContent>
+              </Select>
               <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
                 <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
