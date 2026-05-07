@@ -331,6 +331,11 @@ const ScholarshipProfilePage = () => {
                 </Select>
               </div>
               <div className="flex items-center justify-between"><Label>Single-parent household</Label><Switch checked={form.single_parent_household} onCheckedChange={v => set('single_parent_household', v)} /></div>
+              <div>
+                <Label>Expected Family Contribution (EFC)</Label>
+                <Input type="number" min="0" placeholder="e.g., 5000" value={form.expected_family_contribution} onChange={e => set('expected_family_contribution', e.target.value)} />
+                <p className="text-xs text-muted-foreground mt-1">From your FAFSA Student Aid Index. Leave blank if you don't know — we'll estimate from your income range.</p>
+              </div>
             </>
           )}
 
