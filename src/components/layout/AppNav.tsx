@@ -22,6 +22,7 @@ export const AppNav = () => {
   const navItems = [
     { to: '/app', icon: Route, label: 'My Routes', exact: true },
     { to: '/app/create', icon: PlusCircle, label: 'Create Route' },
+    { to: '/app/scholarships', icon: Award, label: 'Scholarships' },
     { to: '/app/account', icon: User, label: 'Account' },
     { to: '/app/support', icon: HelpCircle, label: 'Support' },
     { to: '/app/buy-credits', icon: CreditCard, label: 'Buy Credits' },
