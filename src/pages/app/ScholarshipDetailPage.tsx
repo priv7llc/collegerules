@@ -10,10 +10,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Calendar, CheckCircle2, DollarSign, ExternalLink, FileText,
   Loader2, Save, Sparkles, Trophy, XCircle, AlertTriangle, PartyPopper,
+  Minus, Plus, Zap, RefreshCw,
 } from 'lucide-react';
 
 type Status = 'saved' | 'in_progress' | 'submitted' | 'won' | 'lost';
@@ -302,7 +308,8 @@ const ApplicationWorkspace = ({ scholarship, application, essays, setEssays, onS
   saving: boolean;
 }) => {
   const [notes, setNotes] = useState(application.notes || '');
-  const [drafting, setDrafting] = useState<string | null>(null);
+  const [busy, setBusy] = useState<{ essayId: string; mode: string } | null>(null);
+  const [generateElapsed, setGenerateElapsed] = useState(0);
 
   const updateEssay = (id: string, patch: Partial<Essay>) => {
     setEssays(essays.map(e => e.id === id ? { ...e, ...patch } : e));
@@ -317,23 +324,42 @@ const ApplicationWorkspace = ({ scholarship, application, essays, setEssays, onS
     else { updateEssay(e.id, { word_count: wc }); toast.success('Essay saved'); }
   };
 
-  const aiDraft = async (e: Essay) => {
-    if (!e.prompt) { toast.error('No prompt to draft from'); return; }
-    setDrafting(e.id);
-    const { data, error } = await supabase.functions.invoke('draft-scholarship-essay', {
+  const promptIndexFor = (essay: Essay): number => {
+    const prompts = Array.isArray(scholarship.essay_prompts) ? scholarship.essay_prompts : [];
+    return prompts.findIndex((p: any) => {
+      const text = typeof p === 'object' ? (p.prompt || p.question || '') : String(p);
+      return text === essay.prompt;
+    });
+  };
+
+  const runAI = async (essay: Essay, mode: 'generate' | 'improve' | 'shorten' | 'expand' | 'stronger') => {
+    const idx = promptIndexFor(essay);
+    if (idx < 0) { toast.error('Could not find this prompt on the scholarship'); return; }
+    const tone = essay.tone || 'personal';
+    const validTone = ['inspirational', 'professional', 'personal', 'bold'].includes(tone) ? tone : 'personal';
+    setBusy({ essayId: essay.id, mode });
+    setGenerateElapsed(0);
+    let interval: any;
+    if (mode === 'generate') {
+      interval = setInterval(() => setGenerateElapsed(s => s + 1), 1000);
+    }
+    const { data, error } = await supabase.functions.invoke('generate-scholarship-essay', {
       body: {
-        prompt: e.prompt,
-        scholarship_name: scholarship.name,
-        sponsor: scholarship.sponsor,
-        target_word_count: 500,
-        tone: e.tone || 'authentic and reflective',
+        applicationId: application.id,
+        promptIndex: idx,
+        tone: validTone,
+        mode,
+        currentContent: mode === 'generate' ? undefined : (essay.content || ''),
       },
     });
-    setDrafting(null);
-    if (error) { toast.error(error.message); return; }
-    if (data?.draft) {
-      updateEssay(e.id, { content: data.draft });
-      toast.success('Draft generated — review and edit');
+    if (interval) clearInterval(interval);
+    setBusy(null);
+    setGenerateElapsed(0);
+    if (error) { toast.error(error.message || 'Failed to generate essay'); return; }
+    if ((data as any)?.error) { toast.error((data as any).error); return; }
+    if (data?.essay) {
+      updateEssay(essay.id, { content: data.essay, word_count: data.wordCount, tone: validTone });
+      toast.success(mode === 'generate' ? 'Essay generated — edit it to make it yours' : 'Essay updated');
     }
   };
 
@@ -349,38 +375,94 @@ const ApplicationWorkspace = ({ scholarship, application, essays, setEssays, onS
             <p className="text-sm text-muted-foreground">No essay prompts on file. Use the notes section below to track your progress.</p>
           ) : essays.map((e) => {
             const wc = (e.content || '').trim().split(/\s+/).filter(Boolean).length;
+            const isEmpty = !e.content || !e.content.trim();
+            const myBusy = busy?.essayId === e.id;
+            const anyBusy = !!busy;
+            const generating = myBusy && busy?.mode === 'generate';
+            const tone = e.tone && ['inspirational', 'professional', 'personal', 'bold'].includes(e.tone) ? e.tone : 'personal';
             return (
-              <div key={e.id} className="space-y-2 p-4 rounded-lg border bg-card">
+              <div key={e.id} className="space-y-3 p-4 rounded-lg border bg-card">
                 <div className="flex flex-wrap justify-between items-start gap-2">
                   <Input
                     className="font-display text-base font-semibold max-w-md border-0 px-0 focus-visible:ring-0"
                     value={e.title || ''}
                     onChange={(ev) => updateEssay(e.id, { title: ev.target.value })}
                   />
-                  <div className="flex items-center gap-2">
-                    <Select value={e.tone || 'reflective'} onValueChange={(v) => updateEssay(e.id, { tone: v })}>
-                      <SelectTrigger className="w-[150px] h-8"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="reflective">Reflective</SelectItem>
-                        <SelectItem value="confident">Confident</SelectItem>
-                        <SelectItem value="conversational">Conversational</SelectItem>
-                        <SelectItem value="formal">Formal</SelectItem>
-                        <SelectItem value="storytelling">Storytelling</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button size="sm" variant="outline" onClick={() => aiDraft(e)} disabled={drafting === e.id}>
-                      {drafting === e.id ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
-                      AI draft
-                    </Button>
-                  </div>
+                  <Select value={tone} onValueChange={(v) => updateEssay(e.id, { tone: v })}>
+                    <SelectTrigger className="w-[160px] h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="inspirational">Inspirational</SelectItem>
+                      <SelectItem value="professional">Professional</SelectItem>
+                      <SelectItem value="personal">Personal</SelectItem>
+                      <SelectItem value="bold">Bold</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 {e.prompt && <p className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-2 italic">{e.prompt}</p>}
-                <Textarea
-                  rows={10}
-                  placeholder="Write your essay here..."
-                  value={e.content || ''}
-                  onChange={(ev) => updateEssay(e.id, { content: ev.target.value })}
-                />
+
+                {/* AI Toolbar */}
+                <div className="flex flex-wrap gap-2">
+                  {isEmpty ? (
+                    <Button size="sm" onClick={() => runAI(e, 'generate')} disabled={anyBusy}>
+                      {generating ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+                      {generating ? 'Generating... this takes about 20 seconds' : 'Generate Essay with AI'}
+                    </Button>
+                  ) : (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => runAI(e, 'improve')} disabled={anyBusy}>
+                        {myBusy && busy?.mode === 'improve' ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+                        Improve
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => runAI(e, 'shorten')} disabled={anyBusy}>
+                        {myBusy && busy?.mode === 'shorten' ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Minus className="h-3 w-3 mr-1" />}
+                        Shorten
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => runAI(e, 'expand')} disabled={anyBusy}>
+                        {myBusy && busy?.mode === 'expand' ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Plus className="h-3 w-3 mr-1" />}
+                        Expand
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => runAI(e, 'stronger')} disabled={anyBusy}>
+                        {myBusy && busy?.mode === 'stronger' ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Zap className="h-3 w-3 mr-1" />}
+                        Stronger
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="secondary" disabled={anyBusy}>
+                            <RefreshCw className="h-3 w-3 mr-1" />Regenerate
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Regenerate essay?</AlertDialogTitle>
+                            <AlertDialogDescription>This will replace your current essay. Continue?</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => runAI(e, 'generate')}>Regenerate</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">AI drafts are starting points. Edit freely to sound like you.</p>
+
+                <div className="relative">
+                  <Textarea
+                    rows={10}
+                    placeholder="Write your essay here, or click Generate Essay with AI to start from your profile..."
+                    value={e.content || ''}
+                    onChange={(ev) => updateEssay(e.id, { content: ev.target.value })}
+                  />
+                  {generating && isEmpty && (
+                    <div className="absolute inset-0 bg-background/90 rounded-md flex flex-col items-center justify-center gap-3 text-center px-4">
+                      <Sparkles className="h-8 w-8 text-primary animate-pulse" />
+                      <p className="text-sm font-medium">
+                        {generateElapsed < 10 ? 'Pulling from your profile to write your essay...' : 'Almost there...'}
+                      </p>
+                    </div>
+                  )}
+                </div>
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span>{wc} words</span>
                   <Button size="sm" variant="secondary" onClick={() => saveEssay(e)}>
