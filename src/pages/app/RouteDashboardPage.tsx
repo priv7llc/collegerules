@@ -154,6 +154,7 @@ const RouteDashboardPage = () => {
         <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-transparent p-0 border-b rounded-none pb-0">
           {[
             { value: 'overview', label: 'Overview', icon: Home },
+            { value: 'affordability', label: 'Affordability', icon: Wallet },
             { value: 'major-courses', label: 'Major Courses', icon: List },
             { value: 'cal-getc', label: 'Cal-GETC / GE', icon: BookMarked },
             { value: 'course-sequence', label: 'Course Sequence', icon: Calendar },
