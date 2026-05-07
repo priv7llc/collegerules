@@ -572,6 +572,8 @@ export type Database = {
           id: string
           name: string
           rejection_reason: string | null
+          relevance_reasoning: string | null
+          relevance_score: number | null
           reviewed_at: string | null
           reviewed_by: string | null
           source_query: string | null
@@ -591,6 +593,8 @@ export type Database = {
           id?: string
           name: string
           rejection_reason?: string | null
+          relevance_reasoning?: string | null
+          relevance_score?: number | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           source_query?: string | null
@@ -610,6 +614,8 @@ export type Database = {
           id?: string
           name?: string
           rejection_reason?: string | null
+          relevance_reasoning?: string | null
+          relevance_score?: number | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           source_query?: string | null
