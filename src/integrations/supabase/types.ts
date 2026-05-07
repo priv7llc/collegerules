@@ -639,6 +639,7 @@ export type Database = {
           current_gpa: number | null
           disability_status: boolean | null
           ethnicities: string[] | null
+          expected_family_contribution_cents: number | null
           first_generation_college: boolean | null
           gender: string | null
           household_income_range: string | null
@@ -672,6 +673,7 @@ export type Database = {
           current_gpa?: number | null
           disability_status?: boolean | null
           ethnicities?: string[] | null
+          expected_family_contribution_cents?: number | null
           first_generation_college?: boolean | null
           gender?: string | null
           household_income_range?: string | null
@@ -705,6 +707,7 @@ export type Database = {
           current_gpa?: number | null
           disability_status?: boolean | null
           ethnicities?: string[] | null
+          expected_family_contribution_cents?: number | null
           first_generation_college?: boolean | null
           gender?: string | null
           household_income_range?: string | null
@@ -842,6 +845,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      university_costs: {
+        Row: {
+          books_supplies_cents: number | null
+          catalog_year: string | null
+          created_at: string
+          housing_food_cents: number | null
+          id: string
+          in_state: boolean
+          last_verified_at: string | null
+          personal_misc_cents: number | null
+          system: string | null
+          total_cost_cents: number
+          transportation_cents: number | null
+          tuition_cents: number
+          university_name: string
+        }
+        Insert: {
+          books_supplies_cents?: number | null
+          catalog_year?: string | null
+          created_at?: string
+          housing_food_cents?: number | null
+          id?: string
+          in_state?: boolean
+          last_verified_at?: string | null
+          personal_misc_cents?: number | null
+          system?: string | null
+          total_cost_cents: number
+          transportation_cents?: number | null
+          tuition_cents: number
+          university_name: string
+        }
+        Update: {
+          books_supplies_cents?: number | null
+          catalog_year?: string | null
+          created_at?: string
+          housing_food_cents?: number | null
+          id?: string
+          in_state?: boolean
+          last_verified_at?: string | null
+          personal_misc_cents?: number | null
+          system?: string | null
+          total_cost_cents?: number
+          transportation_cents?: number | null
+          tuition_cents?: number
+          university_name?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
