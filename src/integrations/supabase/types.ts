@@ -203,6 +203,56 @@ export type Database = {
         }
         Relationships: []
       }
+      essays: {
+        Row: {
+          application_id: string | null
+          content: string | null
+          created_at: string
+          id: string
+          is_template: boolean
+          prompt: string | null
+          title: string | null
+          tone: string | null
+          updated_at: string
+          user_id: string
+          word_count: number | null
+        }
+        Insert: {
+          application_id?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_template?: boolean
+          prompt?: string | null
+          title?: string | null
+          tone?: string | null
+          updated_at?: string
+          user_id: string
+          word_count?: number | null
+        }
+        Update: {
+          application_id?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_template?: boolean
+          prompt?: string | null
+          title?: string | null
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "essays_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "scholarship_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           active: boolean
@@ -455,6 +505,105 @@ export type Database = {
         }
         Relationships: []
       }
+      scholarship_applications: {
+        Row: {
+          amount_won_cents: number | null
+          created_at: string
+          id: string
+          notes: string | null
+          route_id: string | null
+          scholarship_id: string
+          status: Database["public"]["Enums"]["scholarship_status"]
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_won_cents?: number | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          route_id?: string | null
+          scholarship_id: string
+          status?: Database["public"]["Enums"]["scholarship_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_won_cents?: number | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          route_id?: string | null
+          scholarship_id?: string
+          status?: Database["public"]["Enums"]["scholarship_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scholarship_applications_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scholarship_applications_scholarship_id_fkey"
+            columns: ["scholarship_id"]
+            isOneToOne: false
+            referencedRelation: "scholarships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scholarships: {
+        Row: {
+          active: boolean
+          amount_cents: number
+          created_at: string
+          deadline: string | null
+          description: string | null
+          eligibility_criteria: Json
+          essay_prompts: Json
+          external_url: string | null
+          id: string
+          name: string
+          sponsor: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          amount_cents: number
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          eligibility_criteria?: Json
+          essay_prompts?: Json
+          external_url?: string | null
+          id?: string
+          name: string
+          sponsor?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          amount_cents?: number
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          eligibility_criteria?: Json
+          essay_prompts?: Json
+          external_url?: string | null
+          id?: string
+          name?: string
+          sponsor?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       source_colleges: {
         Row: {
           active: boolean
@@ -557,6 +706,29 @@ export type Database = {
         }
         Returns: boolean
       }
+      match_scholarships_for_user: {
+        Args: { _user_id: string }
+        Returns: {
+          active: boolean
+          amount_cents: number
+          created_at: string
+          deadline: string | null
+          description: string | null
+          eligibility_criteria: Json
+          essay_prompts: Json
+          external_url: string | null
+          id: string
+          name: string
+          sponsor: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "scholarships"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "student"
@@ -567,6 +739,7 @@ export type Database = {
         | "ready"
         | "needs_review"
         | "archived"
+      scholarship_status: "saved" | "in_progress" | "submitted" | "won" | "lost"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -703,6 +876,7 @@ export const Constants = {
         "needs_review",
         "archived",
       ],
+      scholarship_status: ["saved", "in_progress", "submitted", "won", "lost"],
     },
   },
 } as const
