@@ -74,6 +74,8 @@ export default function AdminScholarshipsPage() {
 
   const [sortKey, setSortKey] = useState<SortKey>('relevance');
   const [hideLowRelevance, setHideLowRelevance] = useState(false);
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [userEmails, setUserEmails] = useState<Record<string, string>>({});
 
   const [editScholarship, setEditScholarship] = useState<Partial<Scholarship> | null>(null);
   const [editCandidate, setEditCandidate] = useState<Candidate | null>(null);
