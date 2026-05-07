@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Award, Calendar, DollarSign, ExternalLink, Sparkles, UserCog } from 'lucide-react';
+import { Award, Calendar, DollarSign, Loader2, Sparkles, UserCog } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface MatchedScholarship {
   id: string;
@@ -19,6 +20,7 @@ interface MatchedScholarship {
   external_url: string | null;
   match_score: number;
   match_reasons: string[];
+  is_personal_discovery?: boolean;
 }
 
 type SortMode = 'best_match' | 'closing_soon' | 'highest_amount';
@@ -31,23 +33,58 @@ const ScholarshipsPage = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'high'>('all');
   const [sort, setSort] = useState<SortMode>('best_match');
+  const [runsToday, setRunsToday] = useState<number>(0);
+  const [discovering, setDiscovering] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      if (!user) return;
-      const [{ data: matches }, { data: profile }] = await Promise.all([
-        supabase.rpc('match_scholarships_for_user', { _user_id: user.id }),
-        supabase.from('scholarship_profiles').select('profile_completeness').eq('user_id', user.id).maybeSingle(),
-      ]);
-      setScholarships((matches as MatchedScholarship[]) || []);
-      if (profile) {
-        setHasProfile(true);
-        setCompleteness(profile.profile_completeness ?? 0);
-      }
-      setLoading(false);
-    };
-    load();
+  const remainingToday = Math.max(0, 5 - runsToday);
+
+  const loadAll = useCallback(async () => {
+    if (!user) return;
+    const [{ data: matches }, { data: profile }, { data: runs }] = await Promise.all([
+      supabase.rpc('match_scholarships_for_user', { _user_id: user.id }),
+      supabase.from('scholarship_profiles').select('profile_completeness').eq('user_id', user.id).maybeSingle(),
+      supabase.rpc('user_discovery_runs_today', { _user_id: user.id }),
+    ]);
+    setScholarships((matches as MatchedScholarship[]) || []);
+    if (profile) {
+      setHasProfile(true);
+      setCompleteness(profile.profile_completeness ?? 0);
+    }
+    setRunsToday((runs as number) ?? 0);
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => { loadAll(); }, [loadAll]);
+
+  const handleDiscover = async () => {
+    if (remainingToday === 0) {
+      toast.error('Daily limit reached. Try again tomorrow.');
+      return;
+    }
+    if (!hasProfile) {
+      toast.error('Complete your scholarship profile first.');
+      return;
+    }
+    setDiscovering(true);
+    const tid = toast.loading('Searching the web for scholarships matching your profile... (30-90s)');
+    try {
+      const { data, error } = await supabase.functions.invoke('discover-scholarships-for-user', { body: {} });
+      toast.dismiss(tid);
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const found = (data as any)?.discovered ?? 0;
+      toast.success(found > 0 ? `Found ${found} new scholarships for you!` : 'Search complete — no new matches this round.');
+      if (typeof (data as any)?.remainingToday === 'number') {
+        setRunsToday(5 - (data as any).remainingToday);
+      }
+      await loadAll();
+    } catch (err: any) {
+      toast.dismiss(tid);
+      toast.error(err?.message || 'Discovery failed. Please try again.');
+    } finally {
+      setDiscovering(false);
+    }
+  };
 
   const sorted = useMemo(() => {
     const base = filter === 'high' ? scholarships.filter(s => s.match_score >= 70) : scholarships;
@@ -77,9 +114,18 @@ const ScholarshipsPage = () => {
           <h1 className="text-3xl font-display font-bold">Scholarships</h1>
           <p className="text-muted-foreground">Personalized matches based on your profile.</p>
         </div>
-        <Button variant="outline" asChild>
-          <Link to="/app/scholarships/profile"><UserCog className="h-4 w-4 mr-2" />Edit Profile</Link>
-        </Button>
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleDiscover} disabled={discovering || !hasProfile}>
+              {discovering ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+              Find more for me
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/app/scholarships/profile"><UserCog className="h-4 w-4 mr-2" />Edit Profile</Link>
+            </Button>
+          </div>
+          <span className="text-xs text-muted-foreground">{remainingToday} of 5 AI searches left today</span>
+        </div>
       </div>
 
       {/* Profile completeness banners */}
@@ -113,6 +159,10 @@ const ScholarshipsPage = () => {
         <Card><CardContent className="py-4 flex items-center gap-3"><DollarSign className="h-6 w-6 text-primary" /><div><div className="text-2xl font-bold">{fmtAmt(scholarships.reduce((sum, s) => sum + (s.amount_cents ?? 0), 0))}</div><div className="text-xs text-muted-foreground">Total available</div></div></CardContent></Card>
       </div>
 
+      <p className="text-xs text-muted-foreground italic">
+        Disclaimer: This tool surfaces matches but does not replace official counseling. Always verify scholarship details directly with the sponsor before applying.
+      </p>
+
       {/* Filter + Sort */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <Tabs value={filter} onValueChange={v => setFilter(v as any)}>
@@ -144,15 +194,31 @@ const ScholarshipsPage = () => {
                 <div className="flex justify-between items-start gap-3">
                   <div className="flex-1">
                     <CardTitle className="font-display text-xl">
-                      <Link to={`/app/scholarships/${s.id}`} className="hover:text-primary">{s.name}</Link>
+                      {s.is_personal_discovery && s.external_url ? (
+                        <a href={s.external_url} target="_blank" rel="noreferrer" className="hover:text-primary">{s.name}</a>
+                      ) : (
+                        <Link to={`/app/scholarships/${s.id}`} className="hover:text-primary">{s.name}</Link>
+                      )}
                     </CardTitle>
                     {s.sponsor && <CardDescription>{s.sponsor}</CardDescription>}
                   </div>
-                  <Badge className={scoreVariant(s.match_score)}>{s.match_score}% match</Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge className={scoreVariant(s.match_score)}>{s.match_score}% match</Badge>
+                    {s.is_personal_discovery && (
+                      <Badge variant="outline" className="border-warning text-warning bg-warning/10">
+                        AI-found · Unverified
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 {s.description && <p className="text-sm text-muted-foreground line-clamp-2">{s.description}</p>}
+                {s.is_personal_discovery && (
+                  <p className="text-xs italic text-muted-foreground">
+                    We found this through AI search using your profile. Always verify details on the official site before applying.
+                  </p>
+                )}
                 {s.match_reasons?.length > 0 && (
                   <p className="text-xs text-muted-foreground">
                     <span className="font-medium">Why this matches:</span> {s.match_reasons.join(' · ')}
@@ -161,9 +227,15 @@ const ScholarshipsPage = () => {
                 <div className="flex flex-wrap gap-4 text-sm items-center">
                   <span className="flex items-center gap-1"><DollarSign className="h-4 w-4 text-muted-foreground" />{fmtAmt(s.amount_cents)}</span>
                   <span className="flex items-center gap-1"><Calendar className="h-4 w-4 text-muted-foreground" />{fmtDate(s.deadline)}</span>
-                  <Button size="sm" asChild className="ml-auto">
-                    <Link to={`/app/scholarships/${s.id}`}>View & Apply</Link>
-                  </Button>
+                  {s.is_personal_discovery && s.external_url ? (
+                    <Button size="sm" asChild className="ml-auto">
+                      <a href={s.external_url} target="_blank" rel="noreferrer">Visit Site</a>
+                    </Button>
+                  ) : (
+                    <Button size="sm" asChild className="ml-auto">
+                      <Link to={`/app/scholarships/${s.id}`}>View & Apply</Link>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
