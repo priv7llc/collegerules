@@ -26,6 +26,7 @@ import SupportPage from "@/pages/app/SupportPage";
 import BuyCreditsPage from "@/pages/app/BuyCreditsPage";
 import ScholarshipsPage from "@/pages/app/ScholarshipsPage";
 import ScholarshipProfilePage from "@/pages/app/ScholarshipProfilePage";
+import ScholarshipDetailPage from "@/pages/app/ScholarshipDetailPage";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
