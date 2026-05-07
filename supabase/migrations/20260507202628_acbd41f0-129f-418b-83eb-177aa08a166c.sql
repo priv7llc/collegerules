@@ -1,0 +1,1 @@
+DELETE FROM public.scholarship_candidates WHERE status = 'pending';
