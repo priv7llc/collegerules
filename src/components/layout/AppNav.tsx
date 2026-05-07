@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
-import { GraduationCap, Route, PlusCircle, User, HelpCircle, LogOut, Shield, Menu, CreditCard } from 'lucide-react';
+import { GraduationCap, Route, PlusCircle, User, HelpCircle, LogOut, Shield, Menu, CreditCard, Award } from 'lucide-react';
 
 export const AppNav = () => {
   const { signOut, userRole } = useAuth();
