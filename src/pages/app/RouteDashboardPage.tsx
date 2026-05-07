@@ -246,6 +246,11 @@ const RouteDashboardPage = () => {
           )}
         </TabsContent>
 
+        {/* ===== AFFORDABILITY TAB ===== */}
+        <TabsContent value="affordability" className="space-y-6 mt-6">
+          <AffordabilityTab routeId={routeId!} destinationUniversity={route?.destination_university || ''} />
+        </TabsContent>
+
         {/* ===== MAJOR COURSES TAB ===== */}
         <TabsContent value="major-courses" className="space-y-4 mt-6">
           <div className="mb-4">
