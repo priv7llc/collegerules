@@ -44,9 +44,11 @@ type Candidate = {
   essay_prompts: any;
   status: string;
   created_at?: string;
+  discovered_for_user_id?: string | null;
 };
 
 type SortKey = 'relevance' | 'confidence' | 'newest' | 'closing';
+type SourceFilter = 'all' | 'catalog' | 'personal';
 
 const fmtMoney = (cents?: number | null) =>
   cents == null ? '—' : `$${(cents / 100).toLocaleString()}`;
