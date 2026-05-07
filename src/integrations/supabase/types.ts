@@ -625,6 +625,108 @@ export type Database = {
         }
         Relationships: []
       }
+      scholarship_profiles: {
+        Row: {
+          arts_activities: string[] | null
+          career_goal: string | null
+          career_motivation: string | null
+          challenges_overcome: string | null
+          citizenship_status: string | null
+          city: string | null
+          clubs_organizations: string[] | null
+          community_service_hours: number | null
+          created_at: string
+          current_gpa: number | null
+          disability_status: boolean | null
+          ethnicities: string[] | null
+          first_generation_college: boolean | null
+          gender: string | null
+          household_income_range: string | null
+          id: string
+          intended_major: string | null
+          leadership_roles: string[] | null
+          lgbtq: boolean | null
+          pell_grant_eligible: boolean | null
+          profile_completeness: number
+          religion: string | null
+          single_parent_household: boolean | null
+          sports: string[] | null
+          state_of_residence: string | null
+          unique_attributes: string | null
+          updated_at: string
+          user_id: string
+          veteran_or_military_family: boolean | null
+          work_experience: Json | null
+          zip_code: string | null
+        }
+        Insert: {
+          arts_activities?: string[] | null
+          career_goal?: string | null
+          career_motivation?: string | null
+          challenges_overcome?: string | null
+          citizenship_status?: string | null
+          city?: string | null
+          clubs_organizations?: string[] | null
+          community_service_hours?: number | null
+          created_at?: string
+          current_gpa?: number | null
+          disability_status?: boolean | null
+          ethnicities?: string[] | null
+          first_generation_college?: boolean | null
+          gender?: string | null
+          household_income_range?: string | null
+          id?: string
+          intended_major?: string | null
+          leadership_roles?: string[] | null
+          lgbtq?: boolean | null
+          pell_grant_eligible?: boolean | null
+          profile_completeness?: number
+          religion?: string | null
+          single_parent_household?: boolean | null
+          sports?: string[] | null
+          state_of_residence?: string | null
+          unique_attributes?: string | null
+          updated_at?: string
+          user_id: string
+          veteran_or_military_family?: boolean | null
+          work_experience?: Json | null
+          zip_code?: string | null
+        }
+        Update: {
+          arts_activities?: string[] | null
+          career_goal?: string | null
+          career_motivation?: string | null
+          challenges_overcome?: string | null
+          citizenship_status?: string | null
+          city?: string | null
+          clubs_organizations?: string[] | null
+          community_service_hours?: number | null
+          created_at?: string
+          current_gpa?: number | null
+          disability_status?: boolean | null
+          ethnicities?: string[] | null
+          first_generation_college?: boolean | null
+          gender?: string | null
+          household_income_range?: string | null
+          id?: string
+          intended_major?: string | null
+          leadership_roles?: string[] | null
+          lgbtq?: boolean | null
+          pell_grant_eligible?: boolean | null
+          profile_completeness?: number
+          religion?: string | null
+          single_parent_household?: boolean | null
+          sports?: string[] | null
+          state_of_residence?: string | null
+          unique_attributes?: string | null
+          updated_at?: string
+          user_id?: string
+          veteran_or_military_family?: boolean | null
+          work_experience?: Json | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       scholarships: {
         Row: {
           active: boolean
@@ -778,22 +880,18 @@ export type Database = {
           active: boolean
           amount_cents: number
           created_at: string
-          deadline: string | null
-          description: string | null
+          deadline: string
+          description: string
           eligibility_criteria: Json
           essay_prompts: Json
-          external_url: string | null
+          external_url: string
           id: string
+          match_reasons: string[]
+          match_score: number
           name: string
-          sponsor: string | null
+          sponsor: string
           updated_at: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "scholarships"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
     }
     Enums: {
