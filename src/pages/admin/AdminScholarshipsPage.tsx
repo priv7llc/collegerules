@@ -114,6 +114,8 @@ export default function AdminScholarshipsPage() {
   const visibleCandidates = useMemo(() => {
     let list = [...candidates];
     if (hideLowRelevance) list = list.filter(c => (c.relevance_score ?? 0) >= 0.7);
+    if (sourceFilter === 'catalog') list = list.filter(c => !c.discovered_for_user_id);
+    else if (sourceFilter === 'personal') list = list.filter(c => !!c.discovered_for_user_id);
     list.sort((a, b) => {
       switch (sortKey) {
         case 'relevance':
@@ -131,7 +133,7 @@ export default function AdminScholarshipsPage() {
       }
     });
     return list;
-  }, [candidates, sortKey, hideLowRelevance]);
+  }, [candidates, sortKey, hideLowRelevance, sourceFilter]);
 
   async function runDiscovery() {
     setRunning(true);
