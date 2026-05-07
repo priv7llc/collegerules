@@ -68,6 +68,7 @@ const App = () => (
               <Route path="buy-credits" element={<BuyCreditsPage />} />
               <Route path="scholarships" element={<ScholarshipsPage />} />
               <Route path="scholarships/profile" element={<ScholarshipProfilePage />} />
+              <Route path="scholarships/:scholarshipId" element={<ScholarshipDetailPage />} />
             </Route>
 
             {/* Admin */}
