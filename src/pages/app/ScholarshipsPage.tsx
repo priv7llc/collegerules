@@ -139,31 +139,31 @@ const ScholarshipsPage = () => {
       ) : (
         <div className="grid gap-4">
           {sorted.map(s => (
-            <Card key={s.id} className="relative">
+            <Card key={s.id} className="relative hover:border-primary/50 transition-colors">
               <CardHeader>
                 <div className="flex justify-between items-start gap-3">
                   <div className="flex-1">
-                    <CardTitle className="font-display text-xl">{s.name}</CardTitle>
+                    <CardTitle className="font-display text-xl">
+                      <Link to={`/app/scholarships/${s.id}`} className="hover:text-primary">{s.name}</Link>
+                    </CardTitle>
                     {s.sponsor && <CardDescription>{s.sponsor}</CardDescription>}
                   </div>
                   <Badge className={scoreVariant(s.match_score)}>{s.match_score}% match</Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {s.description && <p className="text-sm text-muted-foreground">{s.description}</p>}
+                {s.description && <p className="text-sm text-muted-foreground line-clamp-2">{s.description}</p>}
                 {s.match_reasons?.length > 0 && (
                   <p className="text-xs text-muted-foreground">
                     <span className="font-medium">Why this matches:</span> {s.match_reasons.join(' · ')}
                   </p>
                 )}
-                <div className="flex flex-wrap gap-4 text-sm">
+                <div className="flex flex-wrap gap-4 text-sm items-center">
                   <span className="flex items-center gap-1"><DollarSign className="h-4 w-4 text-muted-foreground" />{fmtAmt(s.amount_cents)}</span>
                   <span className="flex items-center gap-1"><Calendar className="h-4 w-4 text-muted-foreground" />{fmtDate(s.deadline)}</span>
-                  {s.external_url && (
-                    <a href={s.external_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline ml-auto">
-                      Apply <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
+                  <Button size="sm" asChild className="ml-auto">
+                    <Link to={`/app/scholarships/${s.id}`}>View & Apply</Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
