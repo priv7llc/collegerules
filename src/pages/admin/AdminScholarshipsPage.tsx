@@ -351,6 +351,11 @@ export default function AdminScholarshipsPage() {
                           </Badge>
                         </div>
                       </TableCell>
+                      <TableCell className="text-xs">
+                        {c.discovered_for_user_id
+                          ? <span className="text-accent">{userEmails[c.discovered_for_user_id] || 'Personal discovery'}</span>
+                          : <span className="text-muted-foreground">Catalog Discovery</span>}
+                      </TableCell>
                       <TableCell className="max-w-[180px] truncate">
                         {c.source_url ? <a href={c.source_url} target="_blank" rel="noreferrer" className="text-accent underline text-xs">{c.source_url}</a> : '—'}
                       </TableCell>
