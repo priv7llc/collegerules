@@ -24,6 +24,8 @@ import RouteDashboardPage from "@/pages/app/RouteDashboardPage";
 import AccountPage from "@/pages/app/AccountPage";
 import SupportPage from "@/pages/app/SupportPage";
 import BuyCreditsPage from "@/pages/app/BuyCreditsPage";
+import ScholarshipsPage from "@/pages/app/ScholarshipsPage";
+import ScholarshipProfilePage from "@/pages/app/ScholarshipProfilePage";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsersPage from "@/pages/admin/AdminUsersPage";
@@ -63,6 +65,8 @@ const App = () => (
               <Route path="account" element={<AccountPage />} />
               <Route path="support" element={<SupportPage />} />
               <Route path="buy-credits" element={<BuyCreditsPage />} />
+              <Route path="scholarships" element={<ScholarshipsPage />} />
+              <Route path="scholarships/profile" element={<ScholarshipProfilePage />} />
             </Route>
 
             {/* Admin */}
