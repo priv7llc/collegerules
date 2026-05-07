@@ -184,6 +184,7 @@ const ScholarshipProfilePage = () => {
         religion: form.religion || null,
         pell_grant_eligible: form.pell_grant_eligible,
         household_income_range: form.household_income_range || null,
+        expected_family_contribution_cents: form.expected_family_contribution ? Math.round(parseFloat(form.expected_family_contribution) * 100) : null,
         single_parent_household: form.single_parent_household,
         current_gpa: form.current_gpa ? parseFloat(form.current_gpa) : null,
         intended_major: form.intended_major || null,
