@@ -91,7 +91,19 @@ export default function AdminScholarshipsPage() {
     if (sRes.error) toast.error('Failed to load scholarships');
     else setScholarships(sRes.data as Scholarship[]);
     if (cRes.error) toast.error('Failed to load candidates');
-    else setCandidates(cRes.data as Candidate[]);
+    else {
+      const cands = cRes.data as Candidate[];
+      setCandidates(cands);
+      const userIds = Array.from(new Set(cands.map(c => c.discovered_for_user_id).filter(Boolean) as string[]));
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase.from('profiles').select('id, email').in('id', userIds);
+        const map: Record<string, string> = {};
+        (profiles || []).forEach((p: any) => { if (p.email) map[p.id] = p.email; });
+        setUserEmails(map);
+      } else {
+        setUserEmails({});
+      }
+    }
     setLoading(false);
   }
 
