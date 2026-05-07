@@ -11,8 +11,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   ArrowLeft, BookOpen, CheckCircle2, AlertTriangle, Info, ExternalLink,
   GraduationCap, Calendar, Target, Shield, Clock, Monitor, Home,
-  List, BookMarked, Route, Landmark, Link2
+  List, BookMarked, Route, Landmark, Link2, Wallet, Trophy, ClipboardList, UserCog
 } from 'lucide-react';
+import { AffordabilityTab } from '@/components/AffordabilityTab';
 import type { DashboardPayload } from '@/lib/dashboardTypes';
 
 const iconMap: Record<string, any> = {
