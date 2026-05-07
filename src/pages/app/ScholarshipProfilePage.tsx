@@ -106,6 +106,7 @@ const ScholarshipProfilePage = () => {
           religion: profile.religion ?? '',
           pell_grant_eligible: !!profile.pell_grant_eligible,
           household_income_range: profile.household_income_range ?? '',
+          expected_family_contribution: profile.expected_family_contribution_cents != null ? String(profile.expected_family_contribution_cents / 100) : '',
           single_parent_household: !!profile.single_parent_household,
           current_gpa: profile.current_gpa?.toString() ?? '',
           intended_major: profile.intended_major ?? '',
