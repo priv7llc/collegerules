@@ -11,8 +11,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   ArrowLeft, BookOpen, CheckCircle2, AlertTriangle, Info, ExternalLink,
   GraduationCap, Calendar, Target, Shield, Clock, Monitor, Home,
-  List, BookMarked, Route, Landmark, Link2, Wallet, Trophy, ClipboardList, UserCog
+  List, BookMarked, Route, Landmark, Link2, Wallet, Trophy, ClipboardList, UserCog, RefreshCw
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { AffordabilityTab } from '@/components/AffordabilityTab';
 import type { DashboardPayload } from '@/lib/dashboardTypes';
 
