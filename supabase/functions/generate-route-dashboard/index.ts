@@ -45,6 +45,7 @@ async function generateDashboard(
   userId: string,
   destinationSystem: string,
   destinationCampus: string,
+  skipCreditDeduction: boolean,
 ) {
   const supabaseAdmin = createClient(
     Deno.env.get('SUPABASE_URL')!,
