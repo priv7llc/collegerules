@@ -338,7 +338,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { communityCollege, major, degreeType, state, routeId, userId, destinationSystem, destinationCampus } = await req.json();
+    const { communityCollege, major, degreeType, state, routeId, userId, destinationSystem, destinationCampus, skipCreditDeduction } = await req.json();
 
     if (!communityCollege || !major || !routeId || !userId) {
       return new Response(
@@ -349,6 +349,12 @@ Deno.serve(async (req) => {
 
     console.log('Received dashboard generation request for route', routeId);
 
+    // For regeneration: clear any prior dashboards so the latest one is loaded.
+    if (skipCreditDeduction) {
+      const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      await supabaseAdmin.from('route_dashboards').delete().eq('route_id', routeId);
+    }
+
     const work = generateDashboard(
       communityCollege,
       major,
@@ -358,6 +364,7 @@ Deno.serve(async (req) => {
       userId,
       destinationSystem || 'CSU',
       destinationCampus || '',
+      Boolean(skipCreditDeduction),
     );
 
     work.catch(err => console.error('Background generation failed:', err));
