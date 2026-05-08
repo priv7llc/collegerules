@@ -43,6 +43,8 @@ async function generateDashboard(
   state: string,
   routeId: string,
   userId: string,
+  destinationSystem: string,
+  destinationCampus: string,
 ) {
   const supabaseAdmin = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -55,36 +57,72 @@ async function generateDashboard(
 
     if (!lovableApiKey) throw new Error('AI service not configured');
 
-    console.log(`Generating dashboard for ${communityCollege} - ${major} (${degreeType})`);
+    const sys = (destinationSystem || 'CSU').toUpperCase();
+    const campus = (destinationCampus || '').trim();
+    const destLabel = campus || (sys === 'CSU' ? 'CSU System' : sys === 'UC' ? 'UC System' : 'target university');
+
+    console.log(`Generating dashboard for ${communityCollege} - ${major} (${degreeType}) → ${sys} ${campus}`);
 
     let scrapedContent = '';
     if (firecrawlKey) {
-      const results = await Promise.all([
-        searchFirecrawl(`${communityCollege} ${major} ${degreeType} degree requirements catalog`, firecrawlKey),
-        searchFirecrawl(`${communityCollege} Cal-GETC general education requirements`, firecrawlKey),
-        searchFirecrawl(`site:assist.org ${communityCollege} ${major} articulation`, firecrawlKey),
-        searchFirecrawl(`${communityCollege} transfer center CSU requirements`, firecrawlKey),
-      ]);
+      let queries: string[];
+      if (sys === 'UC') {
+        queries = [
+          `${communityCollege} ${major} transfer requirements UC`,
+          `${communityCollege} IGETC general education requirements`,
+          `site:assist.org ${communityCollege} ${campus || 'UC'} ${major} articulation`,
+          `${campus || 'UC'} transfer admission requirements ${major} TAG`,
+        ];
+      } else if (sys === 'CSU') {
+        queries = [
+          `${communityCollege} ${major} ${degreeType} degree requirements catalog`,
+          `${communityCollege} Cal-GETC general education requirements`,
+          `site:assist.org ${communityCollege} ${campus || ''} ${major} articulation`,
+          `${communityCollege} transfer center CSU requirements`,
+        ];
+      } else {
+        queries = [
+          `${communityCollege} ${major} transfer requirements`,
+          `${campus} transfer admission requirements ${major}`,
+          `${campus} community college transfer credit articulation ${communityCollege}`,
+          `${campus} general education transfer requirements`,
+        ];
+      }
+      const results = await Promise.all(queries.map(q => searchFirecrawl(q, firecrawlKey)));
       scrapedContent = results.filter(Boolean).join('\n\n=== SOURCE BREAK ===\n\n');
       console.log(`Scraped ${scrapedContent.length} chars of content`);
     }
 
     const dt = degreeType || 'AS-T';
-    const systemPrompt = `You are an expert California community college transfer counselor. You generate detailed, accurate transfer route dashboards for students pursuing Associate Degrees for Transfer (ADT).
+    const gePattern = sys === 'CSU' ? 'Cal-GETC' : sys === 'UC' ? 'IGETC' : `${campus || 'destination campus'}-specific GE pattern`;
+    const pathwayDesc = sys === 'CSU'
+      ? 'Associate Degree for Transfer (ADT) — AS-T or AA-T — for guaranteed CSU admission.'
+      : sys === 'UC'
+      ? `UC Transfer Pathway and (where eligible) a Transfer Admission Guarantee (TAG) for ${campus || 'a participating UC campus'}. Note: UC Berkeley and UCLA do NOT offer TAG.`
+      : `Direct transfer pathway to ${campus || 'the target university'} based on its published transfer admission requirements and articulation with ${communityCollege}.`;
 
-Your output must be a valid JSON object matching the exact schema below. Be SPECIFIC to the actual college and major — use real course codes, real prerequisites, real catalog URLs. Focus on AS-T (Associate in Science for Transfer) and AA-T (Associate in Arts for Transfer) pathways.
+    const systemPrompt = `You are an expert California community college transfer counselor. You generate detailed, accurate transfer route dashboards.
 
-For Cal-GETC: Starting Fall 2025, Cal-GETC replaced CSU GE Breadth and IGETC as the required GE pattern. Include all Cal-GETC areas (A1, A2, A3, B1, B2, B4, C, D).
+The student's destination is: ${destLabel} (system: ${sys}).
 
-CRITICAL: Use REAL course codes from ${communityCollege}'s catalog. Do NOT make up course codes. If you're unsure, use the most commonly offered courses for that subject area at California community colleges.`;
+Tailor the entire dashboard to this destination:
+- GE pattern: ${gePattern}
+- Pathway: ${pathwayDesc}
+- Use REAL course codes from ${communityCollege}'s catalog and REAL articulation from ASSIST.org or the destination campus's transfer pages.
+- Do NOT default to CSU/Cal-GETC/AS-T unless the destination is CSU.
+- For UC: use IGETC (7-course pattern: Areas 1A, 1B, 1C [UC only], 2, 3, 4, 5, 6) and reference UC Transfer Pathways for the major.
+- For Other (private/out-of-state): work from that specific school's transfer admission page; do not invent CSU-style guarantees.
+
+Output must be valid JSON matching the exact schema requested.`;
 
     const userPrompt = `Generate a complete transfer route dashboard JSON for:
 - Community College: ${communityCollege}
-- Major/Degree: ${major} ${dt}
+- Major/Degree: ${major}${sys === 'CSU' ? ` ${dt}` : ''}
 - State: ${state || 'California'}
-- Target System: CSU (California State University)
+- Target System: ${sys}
+- Target Campus: ${campus || '(not specified)'}
 
-${scrapedContent ? `Here is scraped data from the college's website and related sources:\n\n${scrapedContent.substring(0, 30000)}` : 'Use your training knowledge about this college and program.'}
+${scrapedContent ? `Here is scraped data from the college's website and related sources:\n\n${scrapedContent.substring(0, 30000)}` : 'Use your training knowledge.'}
 
 Return a JSON object with this exact structure:
 {
