@@ -328,7 +328,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { communityCollege, major, degreeType, state, routeId, userId } = await req.json();
+    const { communityCollege, major, degreeType, state, routeId, userId, destinationSystem, destinationCampus } = await req.json();
 
     if (!communityCollege || !major || !routeId || !userId) {
       return new Response(
@@ -346,6 +346,8 @@ Deno.serve(async (req) => {
       state || 'California',
       routeId,
       userId,
+      destinationSystem || 'CSU',
+      destinationCampus || '',
     );
 
     work.catch(err => console.error('Background generation failed:', err));
