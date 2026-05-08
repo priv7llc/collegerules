@@ -81,6 +81,38 @@ const RouteDashboardPage = () => {
     }, { onConflict: 'route_id,course_key' });
   }, [routeId]);
 
+  const [regenerating, setRegenerating] = useState(false);
+  const handleRegenerate = useCallback(async () => {
+    if (!route || !user) return;
+    if (!confirm('Regenerate this dashboard? Your destination/major settings will be re-used and the AI will rebuild the plan. No credits will be charged.')) return;
+    setRegenerating(true);
+    try {
+      const { data: ri } = await supabase.from('route_inputs').select('raw_form_payload').eq('route_id', route.id).maybeSingle();
+      const form = (ri?.raw_form_payload as any) || {};
+      await supabase.from('routes').update({ status: 'processing' }).eq('id', route.id);
+      await supabase.functions.invoke('generate-route-dashboard', {
+        body: {
+          communityCollege: route.community_college,
+          major: route.major,
+          degreeType: form.majorTrack || 'AS-T',
+          state: form.state || 'California',
+          destinationSystem: route.destination_university || form.destinationUniversity || 'CSU',
+          destinationCampus: route.destination_program || form.destinationProgram || '',
+          routeId: route.id,
+          userId: user.id,
+          skipCreditDeduction: true,
+        },
+      });
+      toast.success('Regenerating — refresh in 30–60 seconds.');
+      setRoute({ ...route, status: 'processing' });
+      setDashboard(null);
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to regenerate');
+    } finally {
+      setRegenerating(false);
+    }
+  }, [route, user]);
+
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
 
   if (route && route.status === 'processing' && !dashboard) return (
