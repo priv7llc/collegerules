@@ -48,8 +48,8 @@ const App = () => (
         <AuthProvider>
           <Routes>
             {/* Public */}
+            <Route path="/" element={<HomePage />} />
             <Route element={<PublicLayout />}>
-              <Route path="/" element={<HomePage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/terms" element={<TermsPage />} />
