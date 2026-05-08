@@ -42,7 +42,7 @@ const HomePage = () => {
               For California transfer students
             </span>
             <h1 className="font-display italic text-5xl lg:text-6xl leading-tight text-berkeley font-normal mt-6">
-              Plan your transfer.<br />
+            Plan your transfer.<br />
               <span className="text-gold">Find your scholarships.</span><br />
               Pay less for college.
             </h1>
