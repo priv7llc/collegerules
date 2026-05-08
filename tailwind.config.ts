@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'DM Sans', 'system-ui', 'sans-serif'],
-        display: ['Instrument Serif', 'Georgia', 'serif'],
+        display: ['Space Grotesk', 'DM Sans', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       backgroundColor: {
