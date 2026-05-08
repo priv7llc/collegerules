@@ -230,7 +230,7 @@ const HomePage = () => {
       {/* SECTION 8 — Final CTA */}
       <section className="bg-gradient-to-b from-white to-cream">
         <div className="max-w-7xl mx-auto py-20 px-6 text-center">
-          <h2 className="font-display text-5xl text-berkeley">
+          <h2 className="font-display font-semibold text-5xl text-berkeley">
             Stop wondering if you can afford it.
           </h2>
           <p className="text-base text-stone-600 max-w-sm mx-auto mt-4">
