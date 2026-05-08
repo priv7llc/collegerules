@@ -16,7 +16,7 @@ const HomePage = () => {
       {/* SECTION 1 — Top nav */}
       <nav className="bg-white border-b border-stone-200">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3.5">
-          <Link to="/" className="font-display italic text-berkeley" style={{ fontSize: 22 }}>
+          <Link to="/" className="font-display text-berkeley" style={{ fontSize: 22 }}>
             College Rules
           </Link>
           <div className="flex items-center gap-6">
@@ -41,7 +41,7 @@ const HomePage = () => {
               <Sparkles className="h-3.5 w-3.5" />
               For California transfer students
             </span>
-            <h1 className="font-display italic text-5xl lg:text-6xl leading-tight text-berkeley font-normal mt-6">
+            <h1 className="font-display text-5xl lg:text-6xl leading-tight text-berkeley font-normal mt-6">
             Plan your transfer.<br />
               <span className="text-gold">Find your scholarships.</span><br />
               Pay less for college.
@@ -72,7 +72,7 @@ const HomePage = () => {
           <div className="relative" style={{ height: 280 }}>
             {/* TODO: replace with hero image — recommend graduation/celebration photo */}
             <div className="absolute inset-0 rounded-3xl overflow-hidden bg-gradient-to-br from-berkeley to-berkeley-deep">
-              <div className="absolute bottom-4 left-4 text-white/90 italic font-display text-lg">
+              <div className="absolute bottom-4 left-4 text-white/90 font-display text-lg">
                 Transfer day. Worth it.
               </div>
             </div>
@@ -100,7 +100,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto py-16 px-6">
           <div className="text-center max-w-xl mx-auto">
             <div className="text-xs font-bold text-gold-deep tracking-widest uppercase">Three things you can do here</div>
-            <h2 className="font-display italic text-4xl text-berkeley font-normal mt-3">
+            <h2 className="font-display text-4xl text-berkeley font-normal mt-3">
               Everything you need, in one place.
             </h2>
           </div>
@@ -114,7 +114,7 @@ const HomePage = () => {
                 <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${c.iconBg}`}>
                   <c.icon className="h-5 w-5" />
                 </div>
-                <h3 className="font-display italic text-xl text-berkeley mt-4">{c.title}</h3>
+                <h3 className="font-display text-xl text-berkeley mt-4">{c.title}</h3>
                 <p className="text-sm text-stone-600 mt-2">{c.desc}</p>
                 <Link to={c.to} className="inline-flex items-center gap-1 text-berkeley font-semibold text-sm mt-4">
                   {c.cta} <ArrowRight className="h-4 w-4" />
@@ -135,7 +135,7 @@ const HomePage = () => {
               <div className="inline-flex items-center gap-1.5 text-xs font-bold text-gold tracking-widest">
                 <Stars className="h-3.5 w-3.5" /> THE BIG IDEA
               </div>
-              <h3 className="font-display italic text-3xl mt-3 max-w-2xl">
+              <h3 className="font-display text-3xl mt-3 max-w-2xl">
                 Win your share of <span className="text-gold">$1.5 billion</span> in scholarships every year.
               </h3>
               <p className="text-sm text-white/85 max-w-md mt-3">
@@ -160,7 +160,7 @@ const HomePage = () => {
             { num: '10 min', label: 'average per app' },
           ].map((s) => (
             <div key={s.label}>
-              <div className="font-display italic text-4xl text-berkeley">{s.num}</div>
+              <div className="font-display text-4xl text-berkeley">{s.num}</div>
               <div className="text-xs text-stone-600 mt-1 tracking-wide">{s.label}</div>
             </div>
           ))}
@@ -172,7 +172,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto py-16 px-6">
           <div className="text-center max-w-xl mx-auto">
             <div className="text-xs font-bold text-gold-deep tracking-widest uppercase">How it works</div>
-            <h2 className="font-display italic text-4xl text-berkeley font-normal mt-3">Four steps. One platform.</h2>
+            <h2 className="font-display text-4xl text-berkeley font-normal mt-3">Four steps. One platform.</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-3.5 mt-10">
             {[
@@ -182,7 +182,7 @@ const HomePage = () => {
               { t: "See what you'll really owe", d: 'Cost of attendance minus scholarships equals your gap. Know your number before you commit.' },
             ].map((s, i) => (
               <div key={s.t} className="bg-white border border-stone-200 rounded-2xl p-5 flex gap-3.5">
-                <div className="h-8 w-8 rounded-full bg-berkeley text-white font-display italic font-bold flex items-center justify-center flex-shrink-0">
+                <div className="h-8 w-8 rounded-full bg-berkeley text-white font-display font-bold flex items-center justify-center flex-shrink-0">
                   {i + 1}
                 </div>
                 <div>
@@ -200,7 +200,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto py-16 px-6">
           <div className="text-center max-w-xl mx-auto">
             <div className="text-xs font-bold text-gold-deep tracking-widest uppercase">Real students, real wins</div>
-            <h2 className="font-display italic text-4xl text-berkeley font-normal mt-3">Built for students like you.</h2>
+            <h2 className="font-display text-4xl text-berkeley font-normal mt-3">Built for students like you.</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-3.5 mt-10">
             {/* TODO: replace avatar divs with real photos:
@@ -211,7 +211,7 @@ const HomePage = () => {
               { q: "My counselor's office is booked weeks out. This gave me everything they would have, plus the scholarship stuff.", n: 'Aaliyah B.', s: "LBCC → CSULB '27", initials: 'AB', bg: 'bg-berkeley-soft text-berkeley' },
             ].map((t) => (
               <div key={t.n} className="bg-white border border-stone-200 rounded-2xl p-5 flex flex-col">
-                <p className="font-display italic text-sm text-stone-800 leading-relaxed flex-1">"{t.q}"</p>
+                <p className="font-display text-sm text-stone-800 leading-relaxed flex-1">"{t.q}"</p>
                 <div className="flex items-center gap-3 mt-5">
                   <div className={`h-10 w-10 rounded-full border-2 border-gold flex items-center justify-center font-semibold text-sm ${t.bg}`}>
                     {t.initials}
@@ -230,7 +230,7 @@ const HomePage = () => {
       {/* SECTION 8 — Final CTA */}
       <section className="bg-gradient-to-b from-white to-cream">
         <div className="max-w-7xl mx-auto py-20 px-6 text-center">
-          <h2 className="font-display italic text-5xl text-berkeley">
+          <h2 className="font-display text-5xl text-berkeley">
             Stop wondering if you can afford it.
           </h2>
           <p className="text-base text-stone-600 max-w-sm mx-auto mt-4">
