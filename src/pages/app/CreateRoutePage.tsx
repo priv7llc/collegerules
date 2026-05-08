@@ -194,10 +194,11 @@ const CreateRoutePage = () => {
                   <SelectContent>
                     <SelectItem value="CSU">CSU (California State University)</SelectItem>
                     <SelectItem value="UC">UC (University of California)</SelectItem>
+                    <SelectItem value="Other">Other (private / out-of-state)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Target Campus (optional)</Label><Input value={form.destinationProgram} onChange={e => set('destinationProgram', e.target.value)} placeholder="e.g., San José State University" /></div>
+              <div><Label>Target Campus (optional)</Label><Input value={form.destinationProgram} onChange={e => set('destinationProgram', e.target.value)} placeholder="e.g., UC Berkeley, Stanford, San José State" /></div>
             </>
           )}
           {step === 3 && (
