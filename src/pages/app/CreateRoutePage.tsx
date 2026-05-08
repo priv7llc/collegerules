@@ -32,7 +32,7 @@ const CreateRoutePage = () => {
     state: 'California',
     major: '',
     majorTrack: '',
-    destinationUniversity: '',
+    destinationUniversity: 'CSU',
     destinationProgram: '',
     transferTerm: '',
     schedule: 'full-time',
@@ -72,8 +72,8 @@ const CreateRoutePage = () => {
         route_name: routeName,
         community_college: form.communityCollege,
         major: form.major,
-        destination_university: 'CSU System',
-        destination_program: form.majorTrack || `${form.major} AS-T`,
+        destination_university: form.destinationUniversity || 'CSU',
+        destination_program: form.destinationProgram || `${form.major} ${form.majorTrack || 'AS-T'}`,
         transfer_term: form.transferTerm || null,
         status: 'processing' as const,
       }).select().single();
@@ -102,6 +102,8 @@ const CreateRoutePage = () => {
           major: form.major,
           degreeType: form.majorTrack || 'AS-T',
           state: form.state,
+          destinationSystem: form.destinationUniversity || 'CSU',
+          destinationCampus: form.destinationProgram || '',
           routeId: route.id,
           userId: user.id,
         },
@@ -192,10 +194,11 @@ const CreateRoutePage = () => {
                   <SelectContent>
                     <SelectItem value="CSU">CSU (California State University)</SelectItem>
                     <SelectItem value="UC">UC (University of California)</SelectItem>
+                    <SelectItem value="Other">Other (private / out-of-state)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Target Campus (optional)</Label><Input value={form.destinationProgram} onChange={e => set('destinationProgram', e.target.value)} placeholder="e.g., San José State University" /></div>
+              <div><Label>Target Campus (optional)</Label><Input value={form.destinationProgram} onChange={e => set('destinationProgram', e.target.value)} placeholder="e.g., UC Berkeley, Stanford, San José State" /></div>
             </>
           )}
           {step === 3 && (

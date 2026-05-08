@@ -1,56 +1,54 @@
-## Problems
+## Problem
 
-**1. No scholarships shown for paulriveramm@gmail.com**
+When a user picks a non-CSU destination (UC Berkeley, a UC campus, or any private/out-of-state school), the generated dashboard still comes back as a CSU + AS-T + Cal-GETC plan. That's because:
 
-The RPC `match_scholarships_for_user` is returning HTTP 400:
-
-```
-column reference "deadline" is ambiguous
-```
-
-In the candidate loop (lines 186–209 of the latest migration), the function does:
-
-```sql
-FOR cand IN
-  SELECT * FROM public.scholarship_candidates
-  WHERE discovered_for_user_id = _user_id
-    AND status = 'pending'
-    AND (deadline IS NULL OR deadline >= CURRENT_DATE)  -- ambiguous
-```
-
-`deadline` is also declared as an OUT column in `RETURNS TABLE(... deadline date ...)`, so Postgres can't tell which one we mean. The whole RPC fails, which is why the scholarships list is empty even though the profile is 100% complete and there are valid catalog scholarships.
-
-**2. Can't open started applications to edit essays**
-
-The detail page already supports the in-progress workspace with essay editing (`ScholarshipDetailPage` VIEW B). The problem is on `ApplicationsPage`: the kanban cards only make the small title text a link. On a 440px-wide mobile viewport, that's a tiny tap target, and there's no obvious "Continue" affordance. Users don't realize the card is interactive.
+1. `CreateRoutePage.tsx` hardcodes `destination_university: 'CSU System'` when inserting the route, ignoring the dropdown the user picked.
+2. The dropdown only offers **CSU** or **UC** — there's no way to type a specific campus like "UC Berkeley" as the actual target system.
+3. The `generate-route-dashboard` edge function never receives the destination — its prompt is hardcoded to `Target System: CSU`, `AS-T`, and Cal-GETC, so Gemini always builds a CSU plan.
 
 ## Fix
 
-### Part 1 — Migration: repair `match_scholarships_for_user`
+### 1. Capture destination correctly (frontend)
 
-New migration that re-creates the function, identical to the current one except the candidate loop uses an alias and qualifies the column:
+In `src/pages/app/CreateRoutePage.tsx`:
+- Default `form.destinationUniversity` to `'CSU'` in initial state (so the Select shows it without falling back to the hardcoded display).
+- On submit, save the actual chosen system + campus to the `routes` row:
+  - `destination_university`: the selected system (`CSU`, `UC`, or "Other")
+  - `destination_program`: the campus the user typed (e.g. "UC Berkeley") or `${major} ${track}` if blank
+- Add a third option to the Target Transfer System dropdown: **"Other (private / out-of-state)"** so students aiming at Stanford, out-of-state schools, etc. aren't forced into CSU/UC.
+- Pass the destination fields into the edge function invoke:
+  ```ts
+  body: {
+    communityCollege, major, degreeType, state,
+    destinationSystem: form.destinationUniversity,   // CSU | UC | Other
+    destinationCampus: form.destinationProgram,      // free text, e.g. "UC Berkeley"
+    routeId, userId,
+  }
+  ```
 
-```sql
-FOR cand IN
-  SELECT sc2.* FROM public.scholarship_candidates sc2
-  WHERE sc2.discovered_for_user_id = _user_id
-    AND sc2.status = 'pending'
-    AND (sc2.deadline IS NULL OR sc2.deadline >= CURRENT_DATE)
-  ORDER BY sc2.relevance_score DESC NULLS LAST, sc2.deadline ASC NULLS LAST
-LOOP
-  ...
-END LOOP;
-```
+### 2. Make the AI prompt destination-aware (backend)
 
-This unblocks both catalog matches and AI-discovered personal candidates for paulriveramm.
+In `supabase/functions/generate-route-dashboard/index.ts`:
+- Accept `destinationSystem` and `destinationCampus` from the request body (default `CSU` for backward compat).
+- Branch the Firecrawl scrape queries on system:
+  - **CSU** → keep current queries (Cal-GETC, CSU transfer center)
+  - **UC** → search ASSIST.org articulation for `${campus || 'UC'}`, IGETC requirements, UC TAG agreements
+  - **Other** → search the specific campus's transfer admission page + the community college's articulation with that campus
+- Replace the hardcoded `Target System: CSU` and Cal-GETC-only instructions in the system/user prompt with conditional language:
+  - System name comes from `destinationSystem` (and `destinationCampus` if provided)
+  - GE pattern: Cal-GETC for CSU, **IGETC** for UC, "campus-specific GE" for Other
+  - Degree path: AS-T/AA-T only when system is CSU; for UC mention TAG/UC Transfer Pathways; for Other tell the model to base it on articulation with that specific school
+- Update `routeMeta.destinationSystem`, `nearbyCsus` (rename concept to `nearbyCampuses` in the prompt instructions but keep the JSON key for back-compat — populate it with relevant campuses for whichever system was chosen), and `adtGuarantee` (only meaningful for CSU; for UC swap to TAG language; for Other clarify no guarantee exists).
 
-### Part 2 — `ApplicationsPage` card UX
+### 3. No DB migration needed
 
-Update `AppCard` so the whole card is tappable and editable applications get a clear CTA:
+`routes.destination_university` and `destination_program` columns already exist; we're just using them properly.
 
-- Wrap the card in a `<Link to={/app/scholarships/${s.id}}>` (only when the scholarship still exists), with `hover:shadow-md` and `cursor-pointer`.
-- For `saved` and `in_progress` cards, add a small footer button: "Continue" (in_progress) or "Start" (saved) using the same link, so the action is unmistakable on mobile.
-- For `submitted` / `won` / `lost`, keep the card linked but no extra button (the status badge tells the story).
-- Stop the inner title `<Link>` from nesting inside the wrapper link.
+### Out of scope
 
-No other behavior changes; the detail page already routes correctly to VIEW B for `in_progress` and lets the user edit essays.
+- Re-rendering existing already-generated CSU dashboards. Old routes stay as-is; only newly created routes after this fix will reflect the chosen destination. (Happy to add a "Regenerate dashboard" admin/user action as a follow-up if you want.)
+
+## Files touched
+
+- `src/pages/app/CreateRoutePage.tsx` — pass destination through, add "Other" option
+- `supabase/functions/generate-route-dashboard/index.ts` — destination-aware scraping + prompt
