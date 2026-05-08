@@ -1,134 +1,247 @@
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { GraduationCap, CheckCircle2, BookOpen, MapPin, ArrowRight, Shield, Clock, Target } from 'lucide-react';
+import {
+  ArrowRight,
+  Sparkles,
+  ShieldCheck,
+  Route as RouteIcon,
+  Coins,
+  PenLine,
+  Stars,
+  CheckCircle2,
+} from 'lucide-react';
 
 const HomePage = () => {
   return (
-    <div>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-primary py-20 md:py-28">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(199_89%_48%/0.15),transparent_60%)]" />
-        <div className="container relative">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-4 py-1.5 text-sm text-primary-foreground/80 mb-6">
-              <GraduationCap className="h-4 w-4" />
-              Your personalized transfer planning dashboard
-            </div>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-primary-foreground leading-tight mb-6">
-              Plan your college transfer with clarity and confidence
+    <div className="bg-cream text-stone-900">
+      {/* SECTION 1 — Top nav */}
+      <nav className="bg-white border-b border-stone-200">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3.5">
+          <Link to="/" className="font-display italic text-berkeley" style={{ fontSize: 22 }}>
+            College Rules
+          </Link>
+          <div className="flex items-center gap-6">
+            <a href="#how-it-works" className="hidden sm:inline text-sm text-stone-700 hover:text-berkeley">How it works</a>
+            <Link to="/pricing" className="hidden sm:inline text-sm text-stone-700 hover:text-berkeley">Pricing</Link>
+            <Link to="/login" className="text-sm text-berkeley font-semibold">Sign in</Link>
+            <Link
+              to="/signup"
+              className="bg-berkeley text-white rounded-full px-4 py-2 text-sm font-semibold hover:bg-berkeley-deep transition"
+            >
+              Get started
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* SECTION 2 — Hero */}
+      <section className="bg-gradient-to-b from-cream to-white">
+        <div className="max-w-7xl mx-auto py-16 px-6 grid gap-12 lg:grid-cols-[1fr_440px] items-center">
+          <div>
+            <span className="inline-flex items-center gap-1.5 bg-gold-soft text-gold-deep px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="h-3.5 w-3.5" />
+              For California transfer students
+            </span>
+            <h1 className="font-display italic text-5xl lg:text-6xl leading-tight text-berkeley font-normal mt-6">
+              Plan your transfer.<br />
+              <span className="text-gold">Find your scholarships.</span><br />
+              Pay less for college.
             </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/80 mb-8 max-w-2xl">
-              Get a route-based transfer roadmap with course tracking, checklists, and next steps — built from official sources. Organize your entire transfer path in one place.
+            <p className="text-base text-stone-600 leading-relaxed max-w-md mt-4">
+              College is expensive. The system is confusing. We built one place that handles all of it — your transfer roadmap, the scholarships you actually qualify for, AI essay help, and a real number for what you'll owe.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Button size="lg" variant="secondary" asChild className="text-primary font-semibold">
-                <Link to="/signup">Get Started — $10 <ArrowRight className="ml-2 h-4 w-4" /></Link>
-              </Button>
-              <Button size="lg" variant="ghost" asChild className="text-primary-foreground border border-primary-foreground/20 hover:bg-primary-foreground/10">
-                <Link to="/pricing">View Pricing</Link>
-              </Button>
+            <div className="flex flex-wrap gap-3 mt-6">
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 bg-gold text-berkeley-deep px-6 py-3 rounded-full font-bold shadow-lg shadow-gold/30 hover:shadow-xl transition"
+              >
+                Get started — $10 <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a
+                href="#how-it-works"
+                className="inline-flex items-center bg-white text-berkeley border-2 border-berkeley px-6 py-3 rounded-full font-semibold hover:bg-berkeley-soft transition"
+              >
+                See how it works
+              </a>
+            </div>
+            <div className="flex items-center gap-1.5 mt-4 text-xs text-stone-500">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              No subscription · 30-day money-back guarantee
+            </div>
+          </div>
+
+          <div className="relative" style={{ height: 280 }}>
+            {/* TODO: replace with hero image — recommend graduation/celebration photo */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden bg-gradient-to-br from-berkeley to-berkeley-deep">
+              <div className="absolute bottom-4 left-4 text-white/90 italic font-display text-lg">
+                Transfer day. Worth it.
+              </div>
+            </div>
+            <div className="absolute -top-3 -right-4 bg-white rounded-2xl shadow-xl p-4 w-[140px]">
+              <div className="font-bold text-berkeley text-2xl">$5,000</div>
+              <span className="inline-block mt-1 bg-gold-soft text-gold-deep text-xs font-bold px-2 py-0.5 rounded-full">
+                92% match
+              </span>
+            </div>
+            <div className="absolute -bottom-3 -left-3.5 bg-white rounded-2xl shadow-xl p-4 flex items-center gap-3 w-[220px]">
+              <div className="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div className="leading-tight">
+                <div className="text-xs font-bold text-stone-900">Won!</div>
+                <div className="text-xs text-stone-600">CCC Transfer Scholarship</div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="py-20 bg-background">
-        <div className="container">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-4">How It Works</h2>
-          <p className="text-muted-foreground text-center mb-12 max-w-xl mx-auto">Three simple steps to get your personalized transfer dashboard.</p>
-          <div className="grid gap-8 md:grid-cols-3">
+      {/* SECTION 3 — Three things */}
+      <section className="bg-cream">
+        <div className="max-w-7xl mx-auto py-16 px-6">
+          <div className="text-center max-w-xl mx-auto">
+            <div className="text-xs font-bold text-gold-deep tracking-widest uppercase">Three things you can do here</div>
+            <h2 className="font-display italic text-4xl text-berkeley font-normal mt-3">
+              Everything you need, in one place.
+            </h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3 mt-10">
             {[
-              { step: '1', icon: MapPin, title: 'Pick Your Route', desc: 'Tell us your community college, major, and destination university.' },
-              { step: '2', icon: Target, title: 'Get Your Dashboard', desc: 'We generate a personalized dashboard with courses, requirements, and a checklist.' },
-              { step: '3', icon: CheckCircle2, title: 'Track Your Progress', desc: 'Check off completed items, track courses, and stay on top of deadlines.' },
-            ].map(item => (
-              <Card key={item.step} className="relative border-none shadow-md">
-                <CardContent className="pt-8 pb-6 text-center">
-                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                    <item.icon className="h-7 w-7 text-primary" />
+              { icon: RouteIcon, iconBg: 'bg-berkeley-soft text-berkeley', title: 'Plan your transfer', desc: 'Get a personalized roadmap with course tracking, GE patterns, and deadlines for your target CSU or UC.', cta: 'Start a route', to: '/signup' },
+              { icon: Coins, iconBg: 'bg-gold-soft text-gold-deep', title: 'Find your scholarships', desc: 'Match against your real profile. Live AI search any time. Track every application in one board.', cta: 'See your matches', to: '/signup' },
+              { icon: PenLine, iconBg: 'bg-berkeley-soft text-berkeley', title: 'Write your essays', desc: 'AI writes a real first draft from your story. Improve, shorten, or strengthen with one click.', cta: 'Try the essay tool', to: '/signup' },
+            ].map((c) => (
+              <div key={c.title} className="bg-white border border-stone-200 rounded-2xl p-6 hover:border-berkeley hover:shadow-lg hover:-translate-y-0.5 transition">
+                <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${c.iconBg}`}>
+                  <c.icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-display italic text-xl text-berkeley mt-4">{c.title}</h3>
+                <p className="text-sm text-stone-600 mt-2">{c.desc}</p>
+                <Link to={c.to} className="inline-flex items-center gap-1 text-berkeley font-semibold text-sm mt-4">
+                  {c.cta} <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 4 — Featured banner */}
+      <section className="bg-cream">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="relative overflow-hidden rounded-3xl text-white bg-gradient-to-br from-berkeley to-berkeley-deep" style={{ padding: '36px 28px' }}>
+            {/* TODO: optionally add a background image with absolute inset-0 opacity-20 mix-blend-luminosity, behind the gradient overlay */}
+            <div className="absolute bg-gold rounded-full blur-3xl opacity-40 pointer-events-none" style={{ top: -80, right: -80, width: 320, height: 320 }} />
+            <div className="relative">
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-gold tracking-widest">
+                <Stars className="h-3.5 w-3.5" /> THE BIG IDEA
+              </div>
+              <h3 className="font-display italic text-3xl mt-3 max-w-2xl">
+                Win your share of <span className="text-gold">$1.5 billion</span> in scholarships every year.
+              </h3>
+              <p className="text-sm text-white/85 max-w-md mt-3">
+                29,000+ programs are giving away money each year. Most students don't apply because the process is overwhelming. We make it 10 minutes per scholarship instead of hours.
+              </p>
+              <Link to="/signup" className="inline-flex items-center gap-1 bg-gold text-berkeley-deep rounded-full px-5 py-2.5 font-bold mt-5">
+                See your matches <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 5 — Stats bar */}
+      {/* TODO: replace with real metrics once available */}
+      <section className="bg-white border-y border-stone-200">
+        <div className="max-w-3xl mx-auto py-12 px-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          {[
+            { num: '$2.4M+', label: 'in matches generated' },
+            { num: '120+', label: 'CA campuses covered' },
+            { num: '5', label: 'AI tools per essay' },
+            { num: '10 min', label: 'average per app' },
+          ].map((s) => (
+            <div key={s.label}>
+              <div className="font-display italic text-4xl text-berkeley">{s.num}</div>
+              <div className="text-xs text-stone-600 mt-1 tracking-wide">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SECTION 6 — How it works */}
+      <section id="how-it-works" className="bg-cream">
+        <div className="max-w-7xl mx-auto py-16 px-6">
+          <div className="text-center max-w-xl mx-auto">
+            <div className="text-xs font-bold text-gold-deep tracking-widest uppercase">How it works</div>
+            <h2 className="font-display italic text-4xl text-berkeley font-normal mt-3">Four steps. One platform.</h2>
+          </div>
+          <div className="grid md:grid-cols-2 gap-3.5 mt-10">
+            {[
+              { t: 'Build your profile once', d: 'Tell us your community college, major, GPA, and background. We use it everywhere — you never re-enter it.' },
+              { t: 'Get matched with scholarships', d: "See real options ranked by fit. Hit 'Find more for me' anytime to AI-search the web for new ones." },
+              { t: 'Apply with AI essay help', d: 'Generate a first draft in seconds. Improve, shorten, expand, or strengthen with one click.' },
+              { t: "See what you'll really owe", d: 'Cost of attendance minus scholarships equals your gap. Know your number before you commit.' },
+            ].map((s, i) => (
+              <div key={s.t} className="bg-white border border-stone-200 rounded-2xl p-5 flex gap-3.5">
+                <div className="h-8 w-8 rounded-full bg-berkeley text-white font-display italic font-bold flex items-center justify-center flex-shrink-0">
+                  {i + 1}
+                </div>
+                <div>
+                  <div className="font-semibold text-berkeley">{s.t}</div>
+                  <div className="text-sm text-stone-600 mt-1">{s.d}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 7 — Testimonials */}
+      <section className="bg-white">
+        <div className="max-w-7xl mx-auto py-16 px-6">
+          <div className="text-center max-w-xl mx-auto">
+            <div className="text-xs font-bold text-gold-deep tracking-widest uppercase">Real students, real wins</div>
+            <h2 className="font-display italic text-4xl text-berkeley font-normal mt-3">Built for students like you.</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-3.5 mt-10">
+            {/* TODO: replace avatar divs with real photos:
+                <img src="..." className="w-10 h-10 rounded-full object-cover border-2 border-gold" /> */}
+            {[
+              { q: "Honestly thought I'd have to take out loans for SJSU. Won three scholarships. Now I'm paying nothing out of pocket.", n: 'Maria L.', s: "De Anza → SJSU '26", initials: 'ML', bg: 'bg-gold text-berkeley-deep' },
+              { q: 'The AI essay tool is unreasonably good. Wrote my Hispanic Scholarship Fund essay in 20 minutes and won.', n: 'Jordan K.', s: "Foothill → UC Davis '26", initials: 'JK', bg: 'bg-berkeley text-white' },
+              { q: "My counselor's office is booked weeks out. This gave me everything they would have, plus the scholarship stuff.", n: 'Aaliyah B.', s: "LBCC → CSULB '27", initials: 'AB', bg: 'bg-berkeley-soft text-berkeley' },
+            ].map((t) => (
+              <div key={t.n} className="bg-white border border-stone-200 rounded-2xl p-5 flex flex-col">
+                <p className="font-display italic text-sm text-stone-800 leading-relaxed flex-1">"{t.q}"</p>
+                <div className="flex items-center gap-3 mt-5">
+                  <div className={`h-10 w-10 rounded-full border-2 border-gold flex items-center justify-center font-semibold text-sm ${t.bg}`}>
+                    {t.initials}
                   </div>
-                  <div className="text-xs font-bold text-accent mb-2">STEP {item.step}</div>
-                  <h3 className="font-display text-lg font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </CardContent>
-              </Card>
+                  <div>
+                    <div className="font-semibold text-sm text-stone-900">{t.n}</div>
+                    <div className="text-xs text-stone-600">{t.s}</div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* What you get */}
-      <section className="py-20 bg-card">
-        <div className="container">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-4">What You Get</h2>
-          <p className="text-muted-foreground text-center mb-12 max-w-xl mx-auto">Everything you need to plan a successful transfer.</p>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              { icon: BookOpen, title: 'Major Course Tracker', desc: 'See every required course for your major with completion tracking.' },
-              { icon: CheckCircle2, title: 'Interactive Checklists', desc: 'Action items and milestones you can check off as you go.' },
-              { icon: Clock, title: 'Course Sequence', desc: 'Term-by-term suggested schedule with prerequisite warnings.' },
-              { icon: MapPin, title: 'Transfer Guide', desc: 'Application timelines, key dates, and destination-specific reminders.' },
-              { icon: Shield, title: 'Official Resources', desc: 'Direct links to catalogs, articulation agreements, and counselor info.' },
-              { icon: Target, title: 'GE/Transfer Patterns', desc: 'Track general education and transfer pattern completion.' },
-            ].map(item => (
-              <Card key={item.title} className="border shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="pt-6">
-                  <item.icon className="h-6 w-6 text-accent mb-3" />
-                  <h3 className="font-display font-bold mb-1">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing preview */}
-      <section className="py-20 bg-background">
-        <div className="container text-center">
-          <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Simple, Affordable Pricing</h2>
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">One-time payment. No subscriptions. Your dashboard stays available as long as you need it.</p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center max-w-2xl mx-auto">
-            <Card className="flex-1 border-2 shadow-md">
-              <CardContent className="pt-6 text-center">
-                <h3 className="font-display font-bold text-lg mb-1">1 Route</h3>
-                <div className="text-3xl font-bold text-primary mb-2">$10</div>
-                <p className="text-sm text-muted-foreground mb-4">Perfect if you know your path</p>
-                <Button asChild className="w-full"><Link to="/signup">Get Started</Link></Button>
-              </CardContent>
-            </Card>
-            <Card className="flex-1 border-2 border-accent shadow-lg relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">BEST VALUE</div>
-              <CardContent className="pt-6 text-center">
-                <h3 className="font-display font-bold text-lg mb-1">5 Routes</h3>
-                <div className="text-3xl font-bold text-primary mb-2">$25</div>
-                <p className="text-sm text-muted-foreground mb-4">Explore multiple transfer paths</p>
-                <Button asChild className="w-full"><Link to="/signup">Get Started</Link></Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust */}
-      <section className="py-16 bg-card border-t">
-        <div className="container text-center">
-          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            College Rules is a planning and organization platform. All route data is built from official sources. Always verify requirements with your academic counselor. Requirements may change — check with your transfer center for the latest information.
+      {/* SECTION 8 — Final CTA */}
+      <section className="bg-gradient-to-b from-white to-cream">
+        <div className="max-w-7xl mx-auto py-20 px-6 text-center">
+          <h2 className="font-display italic text-5xl text-berkeley">
+            Stop wondering if you can afford it.
+          </h2>
+          <p className="text-base text-stone-600 max-w-sm mx-auto mt-4">
+            Find out in the next 10 minutes.
           </p>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 bg-primary">
-        <div className="container text-center">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-4">Ready to plan your transfer?</h2>
-          <p className="text-primary-foreground/80 mb-8 max-w-md mx-auto">Get your personalized transfer dashboard in minutes.</p>
-          <Button size="lg" variant="secondary" asChild className="text-primary font-semibold">
-            <Link to="/signup">Create Your Dashboard <ArrowRight className="ml-2 h-4 w-4" /></Link>
-          </Button>
+          <Link
+            to="/signup"
+            className="inline-flex items-center gap-2 bg-gold text-berkeley-deep px-6 py-3 rounded-full font-bold shadow-lg shadow-gold/30 hover:shadow-xl transition mt-8"
+          >
+            Get started — $10 <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
     </div>

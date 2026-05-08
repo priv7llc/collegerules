@@ -15,10 +15,24 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'DM Sans', 'system-ui', 'sans-serif'],
-        display: ['DM Sans', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['Instrument Serif', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
+      backgroundColor: {
+        cream: '#FAF7F0',
+      },
       colors: {
+        cream: '#FAF7F0',
+        berkeley: {
+          DEFAULT: '#003262',
+          deep: '#001f3f',
+          soft: '#E6EEF7',
+        },
+        gold: {
+          DEFAULT: '#FDB515',
+          soft: '#FFF4D9',
+          deep: '#8C5E00',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
