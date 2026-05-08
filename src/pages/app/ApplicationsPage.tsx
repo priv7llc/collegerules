@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Award, Calendar, ClipboardList, DollarSign, FolderOpen, Loader2,
+  ArrowRight, Award, Calendar, ClipboardList, DollarSign, FolderOpen, Loader2,
   Send, Trophy, XCircle,
 } from 'lucide-react';
 
