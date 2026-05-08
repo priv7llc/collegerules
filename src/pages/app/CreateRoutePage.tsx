@@ -102,6 +102,8 @@ const CreateRoutePage = () => {
           major: form.major,
           degreeType: form.majorTrack || 'AS-T',
           state: form.state,
+          destinationSystem: form.destinationUniversity || 'CSU',
+          destinationCampus: form.destinationProgram || '',
           routeId: route.id,
           userId: user.id,
         },
