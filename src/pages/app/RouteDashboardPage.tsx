@@ -145,8 +145,12 @@ const RouteDashboardPage = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Back */}
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center justify-between gap-3 mb-2">
         <Button variant="ghost" size="sm" asChild><Link to="/app"><ArrowLeft className="h-4 w-4 mr-1" />My Routes</Link></Button>
+        <Button variant="outline" size="sm" onClick={handleRegenerate} disabled={regenerating}>
+          <RefreshCw className={`h-4 w-4 mr-1 ${regenerating ? 'animate-spin' : ''}`} />
+          {regenerating ? 'Regenerating…' : 'Regenerate'}
+        </Button>
       </div>
 
       {/* Header */}
