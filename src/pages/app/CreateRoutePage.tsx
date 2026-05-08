@@ -72,8 +72,8 @@ const CreateRoutePage = () => {
         route_name: routeName,
         community_college: form.communityCollege,
         major: form.major,
-        destination_university: 'CSU System',
-        destination_program: form.majorTrack || `${form.major} AS-T`,
+        destination_university: form.destinationUniversity || 'CSU',
+        destination_program: form.destinationProgram || `${form.major} ${form.majorTrack || 'AS-T'}`,
         transfer_term: form.transferTerm || null,
         status: 'processing' as const,
       }).select().single();
