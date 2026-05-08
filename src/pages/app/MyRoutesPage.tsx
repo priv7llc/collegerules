@@ -14,9 +14,28 @@ interface RouteRecord {
   community_college: string | null;
   major: string | null;
   destination_university: string | null;
+  destination_program: string | null;
   status: string;
   updated_at: string;
 }
+
+const systemLabel = (sys: string | null): string => {
+  const s = (sys || '').trim().toUpperCase();
+  if (s === 'CSU' || s === 'CSU SYSTEM') return 'CSU System';
+  if (s === 'UC' || s === 'UC SYSTEM') return 'UC System';
+  if (s === 'OTHER') return 'Other University';
+  return sys || 'CSU System';
+};
+
+const formatDestination = (sys: string | null, program: string | null, major: string | null): string => {
+  const label = systemLabel(sys);
+  const p = (program || '').trim();
+  if (!p) return label;
+  // Hide auto-generated "{major} AS-T" / "{major} AA-T" placeholders
+  const isPlaceholder = /^.+\s(AS-T|AA-T)$/i.test(p) && major && p.toLowerCase().startsWith(major.toLowerCase());
+  if (isPlaceholder) return label;
+  return `${label} — ${p}`;
+};
 
 const statusColors: Record<string, string> = {
   draft: 'bg-muted text-muted-foreground',
@@ -115,7 +134,7 @@ const MyRoutesPage = () => {
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-base font-semibold line-clamp-1">
-                    {route.route_name || `${route.community_college} → ${route.destination_university}`}
+                    {route.route_name || `${route.community_college} → ${systemLabel(route.destination_university)}`}
                   </CardTitle>
                   <Badge className={statusColors[route.status] || ''} variant="secondary">{route.status}</Badge>
                 </div>
@@ -124,7 +143,7 @@ const MyRoutesPage = () => {
                 <div className="space-y-1 text-sm text-muted-foreground mb-4">
                   <p><span className="font-medium text-foreground">From:</span> {route.community_college}</p>
                   <p><span className="font-medium text-foreground">Major:</span> {route.major}</p>
-                  <p><span className="font-medium text-foreground">To:</span> {route.destination_university}</p>
+                  <p><span className="font-medium text-foreground">To:</span> {formatDestination(route.destination_university, route.destination_program, route.major)}</p>
                 </div>
                 <div className="flex gap-2">
                   {route.status === 'ready' ? (
