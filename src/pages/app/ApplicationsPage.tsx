@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
-  Award, Calendar, ClipboardList, DollarSign, FolderOpen, Loader2,
+  ArrowRight, Award, Calendar, ClipboardList, DollarSign, FolderOpen, Loader2,
   Send, Trophy, XCircle,
 } from 'lucide-react';
 
@@ -177,18 +177,13 @@ const AppCard = ({ item }: { item: AppRow }) => {
   const days = daysUntil(s?.deadline ?? null);
   const isUrgent = days != null && days >= 0 && days <= 7 && (item.status === 'saved' || item.status === 'in_progress');
   const isOverdue = days != null && days < 0 && (item.status === 'saved' || item.status === 'in_progress');
+  const isEditable = item.status === 'saved' || item.status === 'in_progress';
 
-  return (
-    <Card className="hover:shadow-md transition-shadow">
+  const inner = (
+    <Card className={`transition-shadow ${s ? 'hover:shadow-md hover:border-primary/40 cursor-pointer' : ''}`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm leading-snug">
-          {s ? (
-            <Link to={`/app/scholarships/${s.id}`} className="hover:underline">
-              {s.name}
-            </Link>
-          ) : (
-            <span className="text-muted-foreground">Scholarship removed</span>
-          )}
+          {s ? s.name : <span className="text-muted-foreground">Scholarship removed</span>}
         </CardTitle>
         {s?.sponsor && <p className="text-xs text-muted-foreground">{s.sponsor}</p>}
       </CardHeader>
@@ -218,8 +213,28 @@ const AppCard = ({ item }: { item: AppRow }) => {
             <XCircle className="h-3 w-3 mr-1" />Not selected
           </Badge>
         )}
+        {s && isEditable && (
+          <div className="pt-1 flex items-center justify-between text-primary font-medium">
+            <span>{item.status === 'in_progress' ? 'Continue editing' : 'Open & start'}</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </div>
+        )}
+        {s && !isEditable && (
+          <div className="pt-1 flex items-center justify-between text-muted-foreground">
+            <span>View details</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </div>
+        )}
       </CardContent>
     </Card>
+  );
+
+  return s ? (
+    <Link to={`/app/scholarships/${s.id}`} className="block">
+      {inner}
+    </Link>
+  ) : (
+    inner
   );
 };
 
