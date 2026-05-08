@@ -249,6 +249,13 @@ Return a JSON object with this exact structure:
   }
 }
 
+NOTE on field naming for non-CSU destinations (the UI uses these exact keys regardless of system):
+- "calGetcAreas": populate with the GE areas of the appropriate pattern. For UC use IGETC areas (1A, 1B, 1C, 2, 3A, 3B, 4, 5A, 5B, 6). For Other, use the destination campus's published transfer GE pattern.
+- "geNotes": describe the actual GE pattern used (IGETC for UC, campus-specific for Other). Do NOT mention Cal-GETC unless system is CSU.
+- "nearbyCsus": treat as "nearby relevant campuses". For UC, list nearby UC campuses. For Other, list the target campus + alternates.
+- "adtGuarantee": for UC, frame as TAG (Transfer Admission Guarantee) — list which UC campuses offer TAG and which (Berkeley, UCLA, San Diego) do not. For Other, "guarantees" should be empty or note "No formal admission guarantee" and "doesNotGuarantee" should list realistic caveats.
+- "overviewCards", "criticalNotes", "transferDeadlines", "resources": all destination-specific. Do not reference CSU unless system is CSU.
+
 IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no explanation. Just the JSON object.`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
