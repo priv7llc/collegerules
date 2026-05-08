@@ -45,6 +45,7 @@ async function generateDashboard(
   userId: string,
   destinationSystem: string,
   destinationCampus: string,
+  skipCreditDeduction: boolean,
 ) {
   const supabaseAdmin = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -301,19 +302,21 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no explanation. 
       llm_model: 'gemini-3-flash-preview',
     });
 
-    // Deduct a credit
-    const { data: creditRecords } = await supabaseAdmin
-      .from('route_credits')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: true });
+    // Deduct a credit (skip when regenerating)
+    if (!skipCreditDeduction) {
+      const { data: creditRecords } = await supabaseAdmin
+        .from('route_credits')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
 
-    if (creditRecords) {
-      for (const cr of creditRecords) {
-        const available = cr.credits_added - cr.credits_used;
-        if (available > 0) {
-          await supabaseAdmin.from('route_credits').update({ credits_used: cr.credits_used + 1 }).eq('id', cr.id);
-          break;
+      if (creditRecords) {
+        for (const cr of creditRecords) {
+          const available = cr.credits_added - cr.credits_used;
+          if (available > 0) {
+            await supabaseAdmin.from('route_credits').update({ credits_used: cr.credits_used + 1 }).eq('id', cr.id);
+            break;
+          }
         }
       }
     }
@@ -335,7 +338,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { communityCollege, major, degreeType, state, routeId, userId, destinationSystem, destinationCampus } = await req.json();
+    const { communityCollege, major, degreeType, state, routeId, userId, destinationSystem, destinationCampus, skipCreditDeduction } = await req.json();
 
     if (!communityCollege || !major || !routeId || !userId) {
       return new Response(
@@ -346,6 +349,12 @@ Deno.serve(async (req) => {
 
     console.log('Received dashboard generation request for route', routeId);
 
+    // For regeneration: clear any prior dashboards so the latest one is loaded.
+    if (skipCreditDeduction) {
+      const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      await supabaseAdmin.from('route_dashboards').delete().eq('route_id', routeId);
+    }
+
     const work = generateDashboard(
       communityCollege,
       major,
@@ -355,6 +364,7 @@ Deno.serve(async (req) => {
       userId,
       destinationSystem || 'CSU',
       destinationCampus || '',
+      Boolean(skipCreditDeduction),
     );
 
     work.catch(err => console.error('Background generation failed:', err));
