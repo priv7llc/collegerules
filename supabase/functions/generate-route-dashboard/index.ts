@@ -302,19 +302,21 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no explanation. 
       llm_model: 'gemini-3-flash-preview',
     });
 
-    // Deduct a credit
-    const { data: creditRecords } = await supabaseAdmin
-      .from('route_credits')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: true });
+    // Deduct a credit (skip when regenerating)
+    if (!skipCreditDeduction) {
+      const { data: creditRecords } = await supabaseAdmin
+        .from('route_credits')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
 
-    if (creditRecords) {
-      for (const cr of creditRecords) {
-        const available = cr.credits_added - cr.credits_used;
-        if (available > 0) {
-          await supabaseAdmin.from('route_credits').update({ credits_used: cr.credits_used + 1 }).eq('id', cr.id);
-          break;
+      if (creditRecords) {
+        for (const cr of creditRecords) {
+          const available = cr.credits_added - cr.credits_used;
+          if (available > 0) {
+            await supabaseAdmin.from('route_credits').update({ credits_used: cr.credits_used + 1 }).eq('id', cr.id);
+            break;
+          }
         }
       }
     }
