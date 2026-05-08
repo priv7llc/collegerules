@@ -32,7 +32,7 @@ const CreateRoutePage = () => {
     state: 'California',
     major: '',
     majorTrack: '',
-    destinationUniversity: '',
+    destinationUniversity: 'CSU',
     destinationProgram: '',
     transferTerm: '',
     schedule: 'full-time',
