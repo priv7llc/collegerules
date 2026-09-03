@@ -194,8 +194,32 @@ const CreateRoutePage = () => {
         <CardContent className="space-y-4">
           {step === 0 && (
             <>
-              <div><Label>Community College</Label><Input value={form.communityCollege} onChange={e => set('communityCollege', e.target.value)} placeholder="e.g., Foothill College" /></div>
-              <div><Label>State</Label><Input value={form.state} onChange={e => set('state', e.target.value)} /></div>
+              <div>
+                <Label>State</Label>
+                <Select value={form.state} onValueChange={setState}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Community College</Label>
+                <Input
+                  list="college-suggestions"
+                  value={form.communityCollege}
+                  onChange={e => set('communityCollege', e.target.value)}
+                  placeholder={stateKey === 'Texas' ? 'e.g., Houston City College' : 'e.g., Foothill College'}
+                />
+                <datalist id="college-suggestions">
+                  {collegeSuggestions.map(c => <option key={c} value={c} />)}
+                </datalist>
+                {stateKey === 'Texas' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Houston City College is the new name for Houston Community College — either name works.
+                  </p>
+                )}
+              </div>
             </>
           )}
           {step === 1 && (
@@ -203,11 +227,10 @@ const CreateRoutePage = () => {
               <div><Label>Major</Label><Input value={form.major} onChange={e => set('major', e.target.value)} placeholder="e.g., Business Administration" /></div>
               <div>
                 <Label>Degree Type</Label>
-                <Select value={form.majorTrack || 'AS-T'} onValueChange={v => set('majorTrack', v)}>
+                <Select value={form.majorTrack || degreeOptions[0].value} onValueChange={v => set('majorTrack', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="AS-T">AS-T (Associate in Science for Transfer)</SelectItem>
-                    <SelectItem value="AA-T">AA-T (Associate in Arts for Transfer)</SelectItem>
+                    {degreeOptions.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -215,19 +238,25 @@ const CreateRoutePage = () => {
           )}
           {step === 2 && (
             <>
-              <div><Label>Target Transfer System</Label>
-                <Select value={form.destinationUniversity || 'CSU'} onValueChange={v => set('destinationUniversity', v)}>
+              <div><Label>{stateKey === 'Texas' ? 'Target University' : 'Target Transfer System'}</Label>
+                <Select value={form.destinationUniversity || destinationOptions[0].value} onValueChange={v => set('destinationUniversity', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CSU">CSU (California State University)</SelectItem>
-                    <SelectItem value="UC">UC (University of California)</SelectItem>
-                    <SelectItem value="Other">Other (private / out-of-state)</SelectItem>
+                    {destinationOptions.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Target Campus (optional)</Label><Input value={form.destinationProgram} onChange={e => set('destinationProgram', e.target.value)} placeholder="e.g., UC Berkeley, Stanford, San José State" /></div>
+              <div>
+                <Label>{stateKey === 'Texas' ? 'Target Program / Campus (optional)' : 'Target Campus (optional)'}</Label>
+                <Input
+                  value={form.destinationProgram}
+                  onChange={e => set('destinationProgram', e.target.value)}
+                  placeholder={stateKey === 'Texas' ? 'e.g., BBA Marketing, Bauer College' : 'e.g., UC Berkeley, Stanford, San José State'}
+                />
+              </div>
             </>
           )}
+
           {step === 3 && (
             <>
               <div><Label>Desired Transfer Term</Label><Input value={form.transferTerm} onChange={e => set('transferTerm', e.target.value)} placeholder="e.g., Fall 2026" /></div>
