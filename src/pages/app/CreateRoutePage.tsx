@@ -126,14 +126,15 @@ const CreateRoutePage = () => {
         body: {
           communityCollege: form.communityCollege,
           major: form.major,
-          degreeType: form.majorTrack || 'AS-T',
+          degreeType: degree,
           state: form.state,
-          destinationSystem: form.destinationUniversity || 'CSU',
+          destinationSystem: form.destinationUniversity || destinationOptions[0].value,
           destinationCampus: form.destinationProgram || '',
           routeId: route.id,
           userId: user.id,
         },
       }).catch(err => console.error('Edge function invoke error:', err));
+
 
       toast.info('Your route is being generated! This usually takes 30-60 seconds.');
       setCreatedRouteId(route.id);
