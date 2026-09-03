@@ -361,7 +361,7 @@ const RouteDashboardPage = () => {
         {/* ===== GENERAL EDUCATION TAB ===== */}
         <TabsContent value="cal-getc" className="space-y-4 mt-6">
           <div className="mb-4">
-            <h2 className="text-lg font-bold">{geLabel} General Education</h2>
+            <h2 className="text-lg font-bold">{isTexas ? 'General Education (GE)' : `${geLabel} General Education`}</h2>
             <p className="text-sm text-muted-foreground">
               {isTexas
                 ? 'The Texas Core Curriculum is a 42 semester-credit-hour block. Once you complete the full core at your college, it transfers as a block to any Texas public university.'
