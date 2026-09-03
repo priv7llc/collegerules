@@ -179,7 +179,7 @@ const RouteDashboardPage = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'MAJOR COURSES', value: majorDone, total: majorTotal, icon: BookOpen, color: 'from-blue-500 to-blue-600' },
-          { label: 'CAL-GETC AREAS', value: geDone, total: geTotal, icon: BookMarked, color: 'from-emerald-500 to-emerald-600' },
+          { label: isTexas ? 'GE AREAS' : (geLabel === 'IGETC' ? 'IGETC AREAS' : 'CAL-GETC AREAS'), value: geDone, total: geTotal, icon: BookMarked, color: 'from-emerald-500 to-emerald-600' },
           { label: 'ACTION ITEMS', value: checklistDone, total: checklistTotal, icon: CheckCircle2, color: 'from-violet-500 to-violet-600' },
           { label: 'DEGREE READY', value: readyPct, total: 100, pct: true, icon: Target, color: 'from-orange-500 to-orange-600' },
         ].map(m => (
@@ -199,7 +199,7 @@ const RouteDashboardPage = () => {
             { value: 'overview', label: 'Overview', icon: Home },
             { value: 'affordability', label: 'Affordability', icon: Wallet },
             { value: 'major-courses', label: 'Major Courses', icon: List },
-            { value: 'cal-getc', label: `${geLabel} / GE`, icon: BookMarked },
+            { value: 'cal-getc', label: isTexas ? 'GE / General Ed' : `${geLabel} / GE`, icon: BookMarked },
             { value: 'course-sequence', label: 'Course Sequence', icon: Calendar },
             { value: 'transfer-guide', label: 'Transfer Guide', icon: Route },
             { value: 'resources', label: 'Resources', icon: Link2 },
@@ -213,7 +213,7 @@ const RouteDashboardPage = () => {
         {/* ===== OVERVIEW TAB ===== */}
         <TabsContent value="overview" className="space-y-6 mt-6">
           <p className="text-muted-foreground text-sm">
-            Your complete roadmap to the {meta.communityCollege} {meta.degreeName || meta.major} — guaranteed CSU admission pathway
+            Your complete roadmap to the {meta.communityCollege} {meta.degreeName || meta.major} — {isTexas ? `your Texas transfer pathway to ${destSystem}` : geLabel === 'IGETC' ? 'your UC transfer pathway' : 'guaranteed CSU admission pathway'}
           </p>
 
           {/* Overview Cards */}
@@ -361,7 +361,7 @@ const RouteDashboardPage = () => {
         {/* ===== GENERAL EDUCATION TAB ===== */}
         <TabsContent value="cal-getc" className="space-y-4 mt-6">
           <div className="mb-4">
-            <h2 className="text-lg font-bold">{geLabel} General Education</h2>
+            <h2 className="text-lg font-bold">{isTexas ? 'General Education (GE)' : `${geLabel} General Education`}</h2>
             <p className="text-sm text-muted-foreground">
               {isTexas
                 ? 'The Texas Core Curriculum is a 42 semester-credit-hour block. Once you complete the full core at your college, it transfers as a block to any Texas public university.'
@@ -498,7 +498,7 @@ const RouteDashboardPage = () => {
         <TabsContent value="transfer-guide" className="space-y-4 mt-6">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Transfer Guide</h2>
-            <p className="text-sm text-muted-foreground">Step-by-step — everything you need to understand the CSU transfer process and how your AS-T works for you.</p>
+            <p className="text-sm text-muted-foreground">Step-by-step — everything you need to understand {isTexas ? 'the Texas transfer process and how your core curriculum works for you' : geLabel === 'IGETC' ? 'the UC transfer process and how your IGETC works for you' : 'the CSU transfer process and how your AS-T works for you'}.</p>
           </div>
 
           {dashboard.transferGuide?.map(tg => (
@@ -521,7 +521,7 @@ const RouteDashboardPage = () => {
           {/* Nearby CSUs */}
           {dashboard.nearbyCsus && dashboard.nearbyCsus.length > 0 && (
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Landmark className="h-4 w-4" /> CSU Schools Near {meta.communityCollege}</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Landmark className="h-4 w-4" /> {isTexas ? `Texas Universities Near ${meta.communityCollege}` : geLabel === 'IGETC' ? `UC Campuses Near ${meta.communityCollege}` : `CSU Schools Near ${meta.communityCollege}`}</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 {dashboard.nearbyCsus.map((csu, i) => (
                   <div key={i} className="border-b last:border-0 pb-3 last:pb-0">
