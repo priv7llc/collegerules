@@ -157,11 +157,11 @@ Output must be valid JSON matching the exact schema requested.`;
 
 
     const userPrompt = `Generate a complete transfer route dashboard JSON for:
-- Community College: ${communityCollege}
-- Major/Degree: ${major}${sys === 'CSU' ? ` ${dt}` : ''}
+- Community College: ${collegeAliases}
+- Major/Degree: ${major}${sys === 'CSU' || isTexas ? ` ${dt}` : ''}
 - State: ${state || 'California'}
-- Target System: ${sys}
-- Target Campus: ${campus || '(not specified)'}
+- Target ${isTexas ? 'University' : 'System'}: ${rawSys}
+- Target ${isTexas ? 'Program' : 'Campus'}: ${campus || '(not specified)'}
 
 ${scrapedContent ? `Here is scraped data from the college's website and related sources:\n\n${scrapedContent.substring(0, 30000)}` : 'Use your training knowledge.'}
 
@@ -172,8 +172,9 @@ Return a JSON object with this exact structure:
     "major": "${major}",
     "degreeType": "${dt}",
     "degreeName": "full degree name like '${major} ${dt}'",
-    "destinationSystem": "${sys}",
+    "destinationSystem": "${rawSys}",
     "destinationCampus": "${campus}",
+
     "catalogYear": "2025-2026",
     "totalUnitsRequired": number (typically 90 quarter or 60 semester),
     "majorUnits": number,
