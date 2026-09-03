@@ -16,6 +16,8 @@ import {
 import { toast } from 'sonner';
 import { AffordabilityTab } from '@/components/AffordabilityTab';
 import type { DashboardPayload } from '@/lib/dashboardTypes';
+import { gePatternLabel, isTexasDestination } from '@/lib/transferOptions';
+
 
 const iconMap: Record<string, any> = {
   shield: Shield, clock: Clock, monitor: Monitor, book: BookOpen,
