@@ -213,7 +213,7 @@ const RouteDashboardPage = () => {
         {/* ===== OVERVIEW TAB ===== */}
         <TabsContent value="overview" className="space-y-6 mt-6">
           <p className="text-muted-foreground text-sm">
-            Your complete roadmap to the {meta.communityCollege} {meta.degreeName || meta.major} — guaranteed CSU admission pathway
+            Your complete roadmap to the {meta.communityCollege} {meta.degreeName || meta.major} — {isTexas ? `your Texas transfer pathway to ${destSystem}` : geLabel === 'IGETC' ? 'your UC transfer pathway' : 'guaranteed CSU admission pathway'}
           </p>
 
           {/* Overview Cards */}
