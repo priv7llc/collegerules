@@ -1,35 +1,41 @@
-## Problem
+# Add Texas transfer support
 
-The route card shows **"To: CSU System"** even when the user picked UC + typed "Berkeley". Two separate issues:
+Right now the whole product assumes California: the intake wizard defaults to California, degree types are only AS-T/AA-T, destinations are only CSU/UC/Other, and the AI generator reasons in Cal-GETC/IGETC/ASSIST.org terms. This adds Texas as a first-class state, starting with Houston City College (formerly Houston Community College).
 
-1. **Old routes have stale data.** Routes created before the recent destination fix were inserted with `destination_university = 'CSU System'` regardless of what the user picked. The intake form did capture the real choice in `route_inputs.raw_form_payload` (e.g. `destinationUniversity: 'UC'`, `destinationProgram: 'Berkeley'`), but the `routes` row was wrong.
-2. **The card UI never shows the campus.** Even for new (correctly-saved) routes it only renders `destination_university` and ignores `destination_program`, so "UC + Berkeley" would still just say "UC".
+## 1. Intake wizard becomes state-aware (`CreateRoutePage.tsx`)
 
-## Fix
+- Step 1 gets a **State** dropdown (California, Texas, Other) instead of a free-text field, and the community-college field offers suggestions for the chosen state (Texas list seeded with Houston City College and the other large TX districts; "Other" still allows free text).
+- **Degree type** options switch by state:
+  - California: AS-T, AA-T (unchanged)
+  - Texas: AA, AS, AAT (teaching), AAS (workforce), Core Curriculum only
+- **Destination** options switch by state:
+  - California: CSU, UC, Other (unchanged)
+  - Texas: University of Houston, UH–Downtown, UH–Clear Lake, Texas Southern, Prairie View A&M, Sam Houston State, Texas A&M, Texas State, Texas Tech, UT Austin, UT San Antonio, Texas A&M–Victoria, Other Texas university, Out-of-state
+- The state is saved on the route and passed to the generator so the plan is built with the right rules.
 
-### 1. Backfill existing routes (one-time SQL migration)
+## 2. AI generator gets a Texas branch (`generate-route-dashboard`)
 
-For every `routes` row where `destination_university = 'CSU System'`, copy the real values from `route_inputs.raw_form_payload`:
-- `destination_university` ← `raw_form_payload->>'destinationUniversity'` (fallback `'CSU'`)
-- `destination_program` ← `raw_form_payload->>'destinationProgram'` when non-empty, else keep existing
+A third reasoning path alongside the existing CSU and UC ones:
 
-This corrects the Diablo Valley → Berkeley route and any other backlog rows.
+- Searches Texas sources: the college's catalog and degree plans, TCCNS course numbers, the receiving university's transfer-equivalency tool, published articulation/pathway agreements, and ApplyTexas deadlines.
+- Uses the **Texas Core Curriculum (42 semester credit hours, Components 010–090)** in place of Cal-GETC/IGETC, and **Fields of Study / Texas Transfer Framework** in place of the ADT guarantee.
+- Labels every course with its **TCCNS number** where one exists, and states plainly when a course transfers as an elective rather than counting toward the degree.
+- Handles the AAS → BAAS route (e.g. HCC AAS → UHD BAAS) as a distinct pathway, not a traditional AA/AS transfer.
+- Never claims a guaranteed admission where Texas law only guarantees core-curriculum block transfer.
 
-### 2. Improve card display (`src/pages/app/MyRoutesPage.tsx`)
+## 3. Dashboard labels adapt (`RouteDashboardPage.tsx`)
 
-Add a small `formatDestination(university, program)` helper:
-- Map system codes to friendly labels: `CSU` → "CSU System", `UC` → "UC System", `Other` → "Other University", anything else → as-is.
-- If `destination_program` is set and looks like a campus name (not just `${major} AS-T`), render it as a second line: **"To: UC System — UC Berkeley"**.
+The GE tab currently says "Cal-GETC". It becomes "Core Curriculum" for Texas routes and "IGETC" for UC routes, driven by the payload's destination system. Same fixed template, no new payload contract.
 
-Apply the same helper to:
-- The card's `To:` line
-- The `route_name` fallback at line 118
+## 4. Route cards and metadata (`MyRoutesPage.tsx`)
 
-### Out of scope
+Friendly destination labels extended for Texas so a card reads "To: University of Houston" rather than a raw code.
 
-- Re-generating the AI dashboard for those backfilled old routes. The new routes going forward will already be correct; if you want, I can add a "Regenerate dashboard" button as a follow-up.
+## 5. Seed data (migration)
 
-## Files touched
+- Add Texas community colleges to `source_colleges` (Houston City College plus the other major districts), keeping "Houston Community College" as a searchable legacy name.
+- Add Texas cost-of-attendance rows to `university_costs` (UH, UHD, UHCL, TSU, PVAMU, SHSU, TAMU, Texas State, TTU, UT Austin, UTSA) so the Affordability tab works for Texas routes.
 
-- New migration: `UPDATE routes SET destination_university/destination_program FROM route_inputs.raw_form_payload WHERE destination_university = 'CSU System'`
-- `src/pages/app/MyRoutesPage.tsx` — friendly label helper + show campus
+## Out of scope for this pass
+
+The full course-catalog warehouse from your outline (`institutions`, `courses`, `course_identifiers`, `course_equivalencies`, `degree_requirements`, `transfer_agreements`, `transfer_policies`, `source_records`) plus the `refresh-transfer-data` / `verify-transfer-route` admin pipeline. That is a separate, larger build — this pass makes Texas routes generate correctly end to end using the existing AI-retrieval approach. Say the word and I'll plan that warehouse next.
