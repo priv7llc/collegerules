@@ -133,6 +133,10 @@ const RouteDashboardPage = () => {
   );
 
   const meta = dashboard.routeMeta;
+  const destSystem = route.destination_university || meta.destinationSystem;
+  const geLabel = gePatternLabel(destSystem);
+  const isTexas = isTexasDestination(destSystem);
+
   const majorTotal = dashboard.majorCourses?.length || 0;
   const majorDone = dashboard.majorCourses?.filter(c => courseStatus[c.key] === 'completed').length || 0;
   const geTotal = dashboard.calGetcAreas?.length || 0;
