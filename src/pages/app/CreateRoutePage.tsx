@@ -11,9 +11,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Json } from '@/integrations/supabase/types';
+import {
+  STATES,
+  COLLEGES_BY_STATE,
+  DEGREE_TYPES_BY_STATE,
+  DESTINATIONS_BY_STATE,
+  type StateKey,
+} from '@/lib/transferOptions';
 
 const steps = [
-  { title: 'Your College', desc: 'Which community college are you attending?' },
+  { title: 'Your College', desc: 'Which state and community college are you attending?' },
   { title: 'Your Major', desc: 'What major are you pursuing?' },
   { title: 'Destination', desc: 'Where do you want to transfer?' },
   { title: 'Preferences', desc: 'Tell us about your preferences.' },
@@ -29,9 +36,9 @@ const CreateRoutePage = () => {
   const [createdRouteId, setCreatedRouteId] = useState<string | null>(null);
   const [form, setForm] = useState({
     communityCollege: '',
-    state: 'California',
+    state: 'California' as StateKey,
     major: '',
-    majorTrack: '',
+    majorTrack: 'AS-T',
     destinationUniversity: 'CSU',
     destinationProgram: '',
     transferTerm: '',
@@ -45,12 +52,29 @@ const CreateRoutePage = () => {
 
   const set = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
 
+  const stateKey = form.state as StateKey;
+  const degreeOptions = DEGREE_TYPES_BY_STATE[stateKey] || DEGREE_TYPES_BY_STATE.Other;
+  const destinationOptions = DESTINATIONS_BY_STATE[stateKey] || DESTINATIONS_BY_STATE.Other;
+  const collegeSuggestions = COLLEGES_BY_STATE[stateKey] || [];
+
+  // When the state changes, reset degree + destination to that state's defaults.
+  const setState = (val: string) => {
+    const key = val as StateKey;
+    setForm(f => ({
+      ...f,
+      state: key,
+      majorTrack: (DEGREE_TYPES_BY_STATE[key] || DEGREE_TYPES_BY_STATE.Other)[0].value,
+      destinationUniversity: (DESTINATIONS_BY_STATE[key] || DESTINATIONS_BY_STATE.Other)[0].value,
+    }));
+  };
+
   const canNext = () => {
     if (step === 0) return form.communityCollege.trim().length > 0;
     if (step === 1) return form.major.trim().length > 0;
     if (step === 2) return true; // destination has defaults
     return true;
   };
+
 
   const handleSubmit = async () => {
     if (!user) return;
