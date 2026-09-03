@@ -498,7 +498,7 @@ const RouteDashboardPage = () => {
         <TabsContent value="transfer-guide" className="space-y-4 mt-6">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Transfer Guide</h2>
-            <p className="text-sm text-muted-foreground">Step-by-step — everything you need to understand the CSU transfer process and how your AS-T works for you.</p>
+            <p className="text-sm text-muted-foreground">Step-by-step — everything you need to understand {isTexas ? 'the Texas transfer process and how your core curriculum works for you' : geLabel === 'IGETC' ? 'the UC transfer process and how your IGETC works for you' : 'the CSU transfer process and how your AS-T works for you'}.</p>
           </div>
 
           {dashboard.transferGuide?.map(tg => (
