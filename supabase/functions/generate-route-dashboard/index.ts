@@ -285,18 +285,20 @@ Return a JSON object with this exact structure:
     "dropIn": ["Tuesdays 11:30am...", ...]
   },
   "sourceInfo": {
-    "basedOn": "${communityCollege} catalog 2025-2026, Cal-GETC requirements, ASSIST.org",
+    "basedOn": "${isTexas ? `${communityCollege} catalog 2025-2026, Texas Core Curriculum, TCCNS, ${destLabel} transfer equivalency` : `${communityCollege} catalog 2025-2026, Cal-GETC requirements, ASSIST.org`}",
     "lastVerified": "${new Date().toISOString()}",
     "notes": ["Requirements based on available data...", "Always verify with counselor...", ...]
   }
 }
 
-NOTE on field naming for non-CSU destinations (the UI uses these exact keys regardless of system):
-- "calGetcAreas": populate with the GE areas of the appropriate pattern. For UC use IGETC areas (1A, 1B, 1C, 2, 3A, 3B, 4, 5A, 5B, 6). For Other, use the destination campus's published transfer GE pattern.
-- "geNotes": describe the actual GE pattern used (IGETC for UC, campus-specific for Other). Do NOT mention Cal-GETC unless system is CSU.
-- "nearbyCsus": treat as "nearby relevant campuses". For UC, list nearby UC campuses. For Other, list the target campus + alternates.
-- "adtGuarantee": for UC, frame as TAG (Transfer Admission Guarantee) — list which UC campuses offer TAG and which (Berkeley, UCLA, San Diego) do not. For Other, "guarantees" should be empty or note "No formal admission guarantee" and "doesNotGuarantee" should list realistic caveats.
-- "overviewCards", "criticalNotes", "transferDeadlines", "resources": all destination-specific. Do not reference CSU unless system is CSU.
+NOTE on field naming (the UI uses these exact keys regardless of system):
+- "calGetcAreas": populate with the GE areas of the appropriate pattern. For UC use IGETC areas (1A, 1B, 1C, 2, 3A, 3B, 4, 5A, 5B, 6). For TEXAS use the Texas Core Curriculum components: 010 Communication, 020 Mathematics, 030 Life & Physical Sciences, 040 Language/Philosophy/Culture, 050 Creative Arts, 060 American History, 070 Government/Political Science, 080 Social & Behavioral Sciences, 090 Component Area Option — with the required semester credit hours for each and example courses shown with TCCNS numbers. For Other, use the destination campus's published transfer GE pattern.
+- "geNotes": describe the actual GE pattern used. Do NOT mention Cal-GETC unless system is CSU.
+- "nearbyCsus": treat as "nearby relevant campuses". For UC, list nearby UC campuses. For TEXAS, list other Texas universities that accept this pathway (with notes on program fit). For Other, list the target campus + alternates.
+- "adtGuarantee": for UC, frame as TAG. For TEXAS, "guarantees" should describe core-curriculum BLOCK TRANSFER and any Field of Study block, and "doesNotGuarantee" must include admission to the university/major, application of every course to the degree, and upper-level/residency requirements. For Other, "guarantees" should be empty or note "No formal admission guarantee".
+- "overviewCards", "criticalNotes", "transferDeadlines", "resources": all destination-specific. Do not reference CSU/UC/ASSIST for Texas routes; use ApplyTexas, the college's degree plans, TCCNS, and the university's transfer equivalency tool instead.
+- "majorCourses": in "notes", always state whether the course counts toward the major/degree at the destination or transfers as elective credit only.
+
 
 IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no explanation. Just the JSON object.`;
 
