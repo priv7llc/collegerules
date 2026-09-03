@@ -521,7 +521,7 @@ const RouteDashboardPage = () => {
           {/* Nearby CSUs */}
           {dashboard.nearbyCsus && dashboard.nearbyCsus.length > 0 && (
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Landmark className="h-4 w-4" /> CSU Schools Near {meta.communityCollege}</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Landmark className="h-4 w-4" /> {isTexas ? `Texas Universities Near ${meta.communityCollege}` : geLabel === 'IGETC' ? `UC Campuses Near ${meta.communityCollege}` : `CSU Schools Near ${meta.communityCollege}`}</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 {dashboard.nearbyCsus.map((csu, i) => (
                   <div key={i} className="border-b last:border-0 pb-3 last:pb-0">
