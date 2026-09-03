@@ -199,7 +199,7 @@ const RouteDashboardPage = () => {
             { value: 'overview', label: 'Overview', icon: Home },
             { value: 'affordability', label: 'Affordability', icon: Wallet },
             { value: 'major-courses', label: 'Major Courses', icon: List },
-            { value: 'cal-getc', label: `${geLabel} / GE`, icon: BookMarked },
+            { value: 'cal-getc', label: isTexas ? 'GE / General Ed' : `${geLabel} / GE`, icon: BookMarked },
             { value: 'course-sequence', label: 'Course Sequence', icon: Calendar },
             { value: 'transfer-guide', label: 'Transfer Guide', icon: Route },
             { value: 'resources', label: 'Resources', icon: Link2 },
