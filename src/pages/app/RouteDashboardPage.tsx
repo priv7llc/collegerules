@@ -179,7 +179,7 @@ const RouteDashboardPage = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'MAJOR COURSES', value: majorDone, total: majorTotal, icon: BookOpen, color: 'from-blue-500 to-blue-600' },
-          { label: 'CAL-GETC AREAS', value: geDone, total: geTotal, icon: BookMarked, color: 'from-emerald-500 to-emerald-600' },
+          { label: isTexas ? 'GE AREAS' : (geLabel === 'IGETC' ? 'IGETC AREAS' : 'CAL-GETC AREAS'), value: geDone, total: geTotal, icon: BookMarked, color: 'from-emerald-500 to-emerald-600' },
           { label: 'ACTION ITEMS', value: checklistDone, total: checklistTotal, icon: CheckCircle2, color: 'from-violet-500 to-violet-600' },
           { label: 'DEGREE READY', value: readyPct, total: 100, pct: true, icon: Target, color: 'from-orange-500 to-orange-600' },
         ].map(m => (
