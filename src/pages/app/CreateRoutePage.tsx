@@ -11,9 +11,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Json } from '@/integrations/supabase/types';
+import {
+  STATES,
+  COLLEGES_BY_STATE,
+  DEGREE_TYPES_BY_STATE,
+  DESTINATIONS_BY_STATE,
+  type StateKey,
+} from '@/lib/transferOptions';
 
 const steps = [
-  { title: 'Your College', desc: 'Which community college are you attending?' },
+  { title: 'Your College', desc: 'Which state and community college are you attending?' },
   { title: 'Your Major', desc: 'What major are you pursuing?' },
   { title: 'Destination', desc: 'Where do you want to transfer?' },
   { title: 'Preferences', desc: 'Tell us about your preferences.' },
@@ -29,9 +36,9 @@ const CreateRoutePage = () => {
   const [createdRouteId, setCreatedRouteId] = useState<string | null>(null);
   const [form, setForm] = useState({
     communityCollege: '',
-    state: 'California',
+    state: 'California' as StateKey,
     major: '',
-    majorTrack: '',
+    majorTrack: 'AS-T',
     destinationUniversity: 'CSU',
     destinationProgram: '',
     transferTerm: '',
@@ -45,12 +52,29 @@ const CreateRoutePage = () => {
 
   const set = (key: string, val: string) => setForm(f => ({ ...f, [key]: val }));
 
+  const stateKey = form.state as StateKey;
+  const degreeOptions = DEGREE_TYPES_BY_STATE[stateKey] || DEGREE_TYPES_BY_STATE.Other;
+  const destinationOptions = DESTINATIONS_BY_STATE[stateKey] || DESTINATIONS_BY_STATE.Other;
+  const collegeSuggestions = COLLEGES_BY_STATE[stateKey] || [];
+
+  // When the state changes, reset degree + destination to that state's defaults.
+  const setState = (val: string) => {
+    const key = val as StateKey;
+    setForm(f => ({
+      ...f,
+      state: key,
+      majorTrack: (DEGREE_TYPES_BY_STATE[key] || DEGREE_TYPES_BY_STATE.Other)[0].value,
+      destinationUniversity: (DESTINATIONS_BY_STATE[key] || DESTINATIONS_BY_STATE.Other)[0].value,
+    }));
+  };
+
   const canNext = () => {
     if (step === 0) return form.communityCollege.trim().length > 0;
     if (step === 1) return form.major.trim().length > 0;
     if (step === 2) return true; // destination has defaults
     return true;
   };
+
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -66,17 +90,19 @@ const CreateRoutePage = () => {
       }
 
       // Create route
-      const routeName = `${form.communityCollege} → ${form.major} (${form.majorTrack || 'AS-T'})`;
+      const degree = form.majorTrack || degreeOptions[0].value;
+      const routeName = `${form.communityCollege} → ${form.major} (${degree})`;
       const { data: route, error: routeError } = await supabase.from('routes').insert({
         user_id: user.id,
         route_name: routeName,
         community_college: form.communityCollege,
         major: form.major,
-        destination_university: form.destinationUniversity || 'CSU',
-        destination_program: form.destinationProgram || `${form.major} ${form.majorTrack || 'AS-T'}`,
+        destination_university: form.destinationUniversity || destinationOptions[0].value,
+        destination_program: form.destinationProgram || `${form.major} ${degree}`,
         transfer_term: form.transferTerm || null,
         status: 'processing' as const,
       }).select().single();
+
 
       if (routeError) throw routeError;
 
@@ -100,14 +126,15 @@ const CreateRoutePage = () => {
         body: {
           communityCollege: form.communityCollege,
           major: form.major,
-          degreeType: form.majorTrack || 'AS-T',
+          degreeType: degree,
           state: form.state,
-          destinationSystem: form.destinationUniversity || 'CSU',
+          destinationSystem: form.destinationUniversity || destinationOptions[0].value,
           destinationCampus: form.destinationProgram || '',
           routeId: route.id,
           userId: user.id,
         },
       }).catch(err => console.error('Edge function invoke error:', err));
+
 
       toast.info('Your route is being generated! This usually takes 30-60 seconds.');
       setCreatedRouteId(route.id);
@@ -167,8 +194,32 @@ const CreateRoutePage = () => {
         <CardContent className="space-y-4">
           {step === 0 && (
             <>
-              <div><Label>Community College</Label><Input value={form.communityCollege} onChange={e => set('communityCollege', e.target.value)} placeholder="e.g., Foothill College" /></div>
-              <div><Label>State</Label><Input value={form.state} onChange={e => set('state', e.target.value)} /></div>
+              <div>
+                <Label>State</Label>
+                <Select value={form.state} onValueChange={setState}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Community College</Label>
+                <Input
+                  list="college-suggestions"
+                  value={form.communityCollege}
+                  onChange={e => set('communityCollege', e.target.value)}
+                  placeholder={stateKey === 'Texas' ? 'e.g., Houston City College' : 'e.g., Foothill College'}
+                />
+                <datalist id="college-suggestions">
+                  {collegeSuggestions.map(c => <option key={c} value={c} />)}
+                </datalist>
+                {stateKey === 'Texas' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Houston City College is the new name for Houston Community College — either name works.
+                  </p>
+                )}
+              </div>
             </>
           )}
           {step === 1 && (
@@ -176,11 +227,10 @@ const CreateRoutePage = () => {
               <div><Label>Major</Label><Input value={form.major} onChange={e => set('major', e.target.value)} placeholder="e.g., Business Administration" /></div>
               <div>
                 <Label>Degree Type</Label>
-                <Select value={form.majorTrack || 'AS-T'} onValueChange={v => set('majorTrack', v)}>
+                <Select value={form.majorTrack || degreeOptions[0].value} onValueChange={v => set('majorTrack', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="AS-T">AS-T (Associate in Science for Transfer)</SelectItem>
-                    <SelectItem value="AA-T">AA-T (Associate in Arts for Transfer)</SelectItem>
+                    {degreeOptions.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -188,19 +238,25 @@ const CreateRoutePage = () => {
           )}
           {step === 2 && (
             <>
-              <div><Label>Target Transfer System</Label>
-                <Select value={form.destinationUniversity || 'CSU'} onValueChange={v => set('destinationUniversity', v)}>
+              <div><Label>{stateKey === 'Texas' ? 'Target University' : 'Target Transfer System'}</Label>
+                <Select value={form.destinationUniversity || destinationOptions[0].value} onValueChange={v => set('destinationUniversity', v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="CSU">CSU (California State University)</SelectItem>
-                    <SelectItem value="UC">UC (University of California)</SelectItem>
-                    <SelectItem value="Other">Other (private / out-of-state)</SelectItem>
+                    {destinationOptions.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Target Campus (optional)</Label><Input value={form.destinationProgram} onChange={e => set('destinationProgram', e.target.value)} placeholder="e.g., UC Berkeley, Stanford, San José State" /></div>
+              <div>
+                <Label>{stateKey === 'Texas' ? 'Target Program / Campus (optional)' : 'Target Campus (optional)'}</Label>
+                <Input
+                  value={form.destinationProgram}
+                  onChange={e => set('destinationProgram', e.target.value)}
+                  placeholder={stateKey === 'Texas' ? 'e.g., BBA Marketing, Bauer College' : 'e.g., UC Berkeley, Stanford, San José State'}
+                />
+              </div>
             </>
           )}
+
           {step === 3 && (
             <>
               <div><Label>Desired Transfer Term</Label><Input value={form.transferTerm} onChange={e => set('transferTerm', e.target.value)} placeholder="e.g., Fall 2026" /></div>

@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Route, CreditCard, FolderOpen, Archive, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { systemLabel } from '@/lib/transferOptions';
+
 
 interface RouteRecord {
   id: string;
@@ -19,23 +21,16 @@ interface RouteRecord {
   updated_at: string;
 }
 
-const systemLabel = (sys: string | null): string => {
-  const s = (sys || '').trim().toUpperCase();
-  if (s === 'CSU' || s === 'CSU SYSTEM') return 'CSU System';
-  if (s === 'UC' || s === 'UC SYSTEM') return 'UC System';
-  if (s === 'OTHER') return 'Other University';
-  return sys || 'CSU System';
-};
-
 const formatDestination = (sys: string | null, program: string | null, major: string | null): string => {
   const label = systemLabel(sys);
   const p = (program || '').trim();
   if (!p) return label;
-  // Hide auto-generated "{major} AS-T" / "{major} AA-T" placeholders
-  const isPlaceholder = /^.+\s(AS-T|AA-T)$/i.test(p) && major && p.toLowerCase().startsWith(major.toLowerCase());
+  // Hide auto-generated "{major} AS-T" / "{major} AA" placeholders
+  const isPlaceholder = /^.+\s(AS-T|AA-T|AA|AS|AAT|AAS|Core|Transfer)$/i.test(p) && major && p.toLowerCase().startsWith(major.toLowerCase());
   if (isPlaceholder) return label;
   return `${label} — ${p}`;
 };
+
 
 const statusColors: Record<string, string> = {
   draft: 'bg-muted text-muted-foreground',

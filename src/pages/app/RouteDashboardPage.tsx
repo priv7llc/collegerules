@@ -16,6 +16,8 @@ import {
 import { toast } from 'sonner';
 import { AffordabilityTab } from '@/components/AffordabilityTab';
 import type { DashboardPayload } from '@/lib/dashboardTypes';
+import { gePatternLabel, isTexasDestination } from '@/lib/transferOptions';
+
 
 const iconMap: Record<string, any> = {
   shield: Shield, clock: Clock, monitor: Monitor, book: BookOpen,
@@ -133,6 +135,10 @@ const RouteDashboardPage = () => {
   );
 
   const meta = dashboard.routeMeta;
+  const destSystem = route.destination_university || meta.destinationSystem;
+  const geLabel = gePatternLabel(destSystem);
+  const isTexas = isTexasDestination(destSystem);
+
   const majorTotal = dashboard.majorCourses?.length || 0;
   const majorDone = dashboard.majorCourses?.filter(c => courseStatus[c.key] === 'completed').length || 0;
   const geTotal = dashboard.calGetcAreas?.length || 0;
@@ -193,7 +199,7 @@ const RouteDashboardPage = () => {
             { value: 'overview', label: 'Overview', icon: Home },
             { value: 'affordability', label: 'Affordability', icon: Wallet },
             { value: 'major-courses', label: 'Major Courses', icon: List },
-            { value: 'cal-getc', label: 'Cal-GETC / GE', icon: BookMarked },
+            { value: 'cal-getc', label: `${geLabel} / GE`, icon: BookMarked },
             { value: 'course-sequence', label: 'Course Sequence', icon: Calendar },
             { value: 'transfer-guide', label: 'Transfer Guide', icon: Route },
             { value: 'resources', label: 'Resources', icon: Link2 },
@@ -352,17 +358,30 @@ const RouteDashboardPage = () => {
           )}
         </TabsContent>
 
-        {/* ===== CAL-GETC TAB ===== */}
+        {/* ===== GENERAL EDUCATION TAB ===== */}
         <TabsContent value="cal-getc" className="space-y-4 mt-6">
           <div className="mb-4">
-            <h2 className="text-lg font-bold">Cal-GETC General Education</h2>
-            <p className="text-sm text-muted-foreground">Beginning Fall Quarter 2025, Cal-GETC is the required GE pattern for the AS-T. Full certification in all areas is required.</p>
+            <h2 className="text-lg font-bold">{geLabel} General Education</h2>
+            <p className="text-sm text-muted-foreground">
+              {isTexas
+                ? 'The Texas Core Curriculum is a 42 semester-credit-hour block. Once you complete the full core at your college, it transfers as a block to any Texas public university.'
+                : geLabel === 'IGETC'
+                ? 'IGETC is the general education pattern used for UC transfer. Full certification in all areas is strongly recommended.'
+                : geLabel === 'Cal-GETC'
+                ? 'Beginning Fall Quarter 2025, Cal-GETC is the required GE pattern for the ADT. Full certification in all areas is required.'
+                : 'Complete the general education pattern published by your destination university.'}
+            </p>
             <Card className="mt-3 border-amber-200 bg-amber-50/30">
               <CardContent className="pt-4 text-sm">
-                <strong>Important:</strong> Cal-GETC replaced CSU GE Breadth and IGETC beginning Fall 2025. Some major courses may <strong>double-count</strong> toward GE areas — confirm with your counselor to maximize efficiency!
+                {isTexas ? (
+                  <><strong>Important:</strong> Texas guarantees <strong>block transfer</strong> of a completed core curriculum — not admission to a specific program. Individual core courses transfer one-for-one, but a partially completed core may be re-evaluated. Confirm with an advisor at both colleges.</>
+                ) : (
+                  <><strong>Important:</strong> Some major courses may <strong>double-count</strong> toward GE areas — confirm with your counselor to maximize efficiency!</>
+                )}
               </CardContent>
             </Card>
           </div>
+
 
           {dashboard.calGetcAreas?.map(area => (
             <Card key={area.key} className={checklist[area.key] ? 'border-green-200 bg-green-50/30' : ''}>

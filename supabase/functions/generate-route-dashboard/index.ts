@@ -58,16 +58,33 @@ async function generateDashboard(
 
     if (!lovableApiKey) throw new Error('AI service not configured');
 
-    const sys = (destinationSystem || 'CSU').toUpperCase();
+    const rawSys = (destinationSystem || 'CSU').trim();
+    const sys = rawSys.toUpperCase();
     const campus = (destinationCampus || '').trim();
-    const destLabel = campus || (sys === 'CSU' ? 'CSU System' : sys === 'UC' ? 'UC System' : 'target university');
+    const isTexas = (state || '').trim().toLowerCase() === 'texas'
+      || /texas|houston|prairie view|sam houston|a&m/i.test(rawSys);
+    // Normalize the Houston Community College → Houston City College rename
+    const collegeAliases = /houston (community|city) college/i.test(communityCollege)
+      ? 'Houston City College (formerly Houston Community College, "HCC")'
+      : communityCollege;
+    const destLabel = isTexas
+      ? (rawSys && !/^other/i.test(rawSys) ? rawSys : campus || 'target Texas university')
+      : (campus || (sys === 'CSU' ? 'CSU System' : sys === 'UC' ? 'UC System' : 'target university'));
 
-    console.log(`Generating dashboard for ${communityCollege} - ${major} (${degreeType}) → ${sys} ${campus}`);
+    console.log(`Generating dashboard for ${communityCollege} - ${major} (${degreeType}) → ${rawSys} ${campus} [texas=${isTexas}]`);
 
     let scrapedContent = '';
     if (firecrawlKey) {
       let queries: string[];
-      if (sys === 'UC') {
+      if (isTexas) {
+        queries = [
+          `${collegeAliases} ${major} ${degreeType} degree plan catalog`,
+          `${communityCollege} Texas Core Curriculum 42 hours requirements TCCNS`,
+          `${destLabel} transfer equivalency ${communityCollege} ${major}`,
+          `${destLabel} ${major} transfer degree plan articulation agreement ${communityCollege}`,
+          `ApplyTexas transfer application deadline ${destLabel}`,
+        ];
+      } else if (sys === 'UC') {
         queries = [
           `${communityCollege} ${major} transfer requirements UC`,
           `${communityCollege} IGETC general education requirements`,
@@ -94,15 +111,37 @@ async function generateDashboard(
       console.log(`Scraped ${scrapedContent.length} chars of content`);
     }
 
-    const dt = degreeType || 'AS-T';
-    const gePattern = sys === 'CSU' ? 'Cal-GETC' : sys === 'UC' ? 'IGETC' : `${campus || 'destination campus'}-specific GE pattern`;
-    const pathwayDesc = sys === 'CSU'
+    const dt = degreeType || (isTexas ? 'AS' : 'AS-T');
+    const isAasRoute = /^aas$/i.test(dt);
+    const gePattern = isTexas
+      ? 'Texas Core Curriculum (42 semester credit hours, Components 010–090)'
+      : sys === 'CSU' ? 'Cal-GETC' : sys === 'UC' ? 'IGETC' : `${campus || 'destination campus'}-specific GE pattern`;
+    const pathwayDesc = isTexas
+      ? (isAasRoute
+        ? `Applied-science pathway: ${collegeAliases} AAS → ${destLabel} BAAS (Bachelor of Applied Arts & Sciences) or similar applied bachelor's. This is NOT a traditional AA/AS academic transfer — technical/workforce hours apply only where the receiving university has an articulated applied program, and remaining core curriculum plus upper-level requirements must still be completed.`
+        : `Texas academic transfer: complete the Texas Core Curriculum (42 SCH) and, where one exists, the state Field of Study / Texas Transfer Framework block for ${major}. State law guarantees BLOCK TRANSFER of a completed core curriculum to any Texas public university — it does NOT guarantee admission or that all courses apply to the major.`)
+      : sys === 'CSU'
       ? 'Associate Degree for Transfer (ADT) — AS-T or AA-T — for guaranteed CSU admission.'
       : sys === 'UC'
       ? `UC Transfer Pathway and (where eligible) a Transfer Admission Guarantee (TAG) for ${campus || 'a participating UC campus'}. Note: UC Berkeley and UCLA do NOT offer TAG.`
       : `Direct transfer pathway to ${campus || 'the target university'} based on its published transfer admission requirements and articulation with ${communityCollege}.`;
 
-    const systemPrompt = `You are an expert California community college transfer counselor. You generate detailed, accurate transfer route dashboards.
+    const systemPrompt = isTexas
+      ? `You are an expert Texas community college transfer advisor. You generate detailed, accurate transfer route dashboards for students transferring from a Texas community college to a Texas university.
+
+The student's destination is: ${destLabel}. Sending college: ${collegeAliases}.
+
+Rules you MUST follow:
+- GE pattern: ${gePattern}. NEVER mention Cal-GETC, IGETC, ASSIST.org, ADT, AS-T/AA-T, CSU, or UC — those are California-only and are wrong here.
+- Pathway: ${pathwayDesc}
+- Use REAL course codes from the college's catalog and include the TCCNS (Texas Common Course Numbering System) number for every lower-division academic course where one exists, e.g. "ENGL 1301 (TCCNS ENGL 1301)". Say "no TCCNS equivalent" when there isn't one.
+- For every course, state plainly whether it COUNTS TOWARD THE DEGREE at ${destLabel} or only TRANSFERS AS ELECTIVE credit. If you are unsure, say so and tell the student to check the university's transfer equivalency tool.
+- Cite Fields of Study / the Texas Transfer Framework and any published articulation or pathway agreement (e.g. HCC–UH pathway agreements) as evidence, but never imply an agreement guarantees admission.
+- Applications go through ApplyTexas (or the university's own portal), not CSU Mentor or the UC application.
+- Mention the Texas 90-hour / lower-division credit limits and the receiving university's residency (in-residence hours) requirement where relevant.
+
+Output must be valid JSON matching the exact schema requested.`
+      : `You are an expert California community college transfer counselor. You generate detailed, accurate transfer route dashboards.
 
 The student's destination is: ${destLabel} (system: ${sys}).
 
@@ -116,12 +155,13 @@ Tailor the entire dashboard to this destination:
 
 Output must be valid JSON matching the exact schema requested.`;
 
+
     const userPrompt = `Generate a complete transfer route dashboard JSON for:
-- Community College: ${communityCollege}
-- Major/Degree: ${major}${sys === 'CSU' ? ` ${dt}` : ''}
+- Community College: ${collegeAliases}
+- Major/Degree: ${major}${sys === 'CSU' || isTexas ? ` ${dt}` : ''}
 - State: ${state || 'California'}
-- Target System: ${sys}
-- Target Campus: ${campus || '(not specified)'}
+- Target ${isTexas ? 'University' : 'System'}: ${rawSys}
+- Target ${isTexas ? 'Program' : 'Campus'}: ${campus || '(not specified)'}
 
 ${scrapedContent ? `Here is scraped data from the college's website and related sources:\n\n${scrapedContent.substring(0, 30000)}` : 'Use your training knowledge.'}
 
@@ -132,8 +172,9 @@ Return a JSON object with this exact structure:
     "major": "${major}",
     "degreeType": "${dt}",
     "degreeName": "full degree name like '${major} ${dt}'",
-    "destinationSystem": "${sys}",
+    "destinationSystem": "${rawSys}",
     "destinationCampus": "${campus}",
+
     "catalogYear": "2025-2026",
     "totalUnitsRequired": number (typically 90 quarter or 60 semester),
     "majorUnits": number,
@@ -244,18 +285,20 @@ Return a JSON object with this exact structure:
     "dropIn": ["Tuesdays 11:30am...", ...]
   },
   "sourceInfo": {
-    "basedOn": "${communityCollege} catalog 2025-2026, Cal-GETC requirements, ASSIST.org",
+    "basedOn": "${isTexas ? `${communityCollege} catalog 2025-2026, Texas Core Curriculum, TCCNS, ${destLabel} transfer equivalency` : `${communityCollege} catalog 2025-2026, Cal-GETC requirements, ASSIST.org`}",
     "lastVerified": "${new Date().toISOString()}",
     "notes": ["Requirements based on available data...", "Always verify with counselor...", ...]
   }
 }
 
-NOTE on field naming for non-CSU destinations (the UI uses these exact keys regardless of system):
-- "calGetcAreas": populate with the GE areas of the appropriate pattern. For UC use IGETC areas (1A, 1B, 1C, 2, 3A, 3B, 4, 5A, 5B, 6). For Other, use the destination campus's published transfer GE pattern.
-- "geNotes": describe the actual GE pattern used (IGETC for UC, campus-specific for Other). Do NOT mention Cal-GETC unless system is CSU.
-- "nearbyCsus": treat as "nearby relevant campuses". For UC, list nearby UC campuses. For Other, list the target campus + alternates.
-- "adtGuarantee": for UC, frame as TAG (Transfer Admission Guarantee) — list which UC campuses offer TAG and which (Berkeley, UCLA, San Diego) do not. For Other, "guarantees" should be empty or note "No formal admission guarantee" and "doesNotGuarantee" should list realistic caveats.
-- "overviewCards", "criticalNotes", "transferDeadlines", "resources": all destination-specific. Do not reference CSU unless system is CSU.
+NOTE on field naming (the UI uses these exact keys regardless of system):
+- "calGetcAreas": populate with the GE areas of the appropriate pattern. For UC use IGETC areas (1A, 1B, 1C, 2, 3A, 3B, 4, 5A, 5B, 6). For TEXAS use the Texas Core Curriculum components: 010 Communication, 020 Mathematics, 030 Life & Physical Sciences, 040 Language/Philosophy/Culture, 050 Creative Arts, 060 American History, 070 Government/Political Science, 080 Social & Behavioral Sciences, 090 Component Area Option — with the required semester credit hours for each and example courses shown with TCCNS numbers. For Other, use the destination campus's published transfer GE pattern.
+- "geNotes": describe the actual GE pattern used. Do NOT mention Cal-GETC unless system is CSU.
+- "nearbyCsus": treat as "nearby relevant campuses". For UC, list nearby UC campuses. For TEXAS, list other Texas universities that accept this pathway (with notes on program fit). For Other, list the target campus + alternates.
+- "adtGuarantee": for UC, frame as TAG. For TEXAS, "guarantees" should describe core-curriculum BLOCK TRANSFER and any Field of Study block, and "doesNotGuarantee" must include admission to the university/major, application of every course to the degree, and upper-level/residency requirements. For Other, "guarantees" should be empty or note "No formal admission guarantee".
+- "overviewCards", "criticalNotes", "transferDeadlines", "resources": all destination-specific. Do not reference CSU/UC/ASSIST for Texas routes; use ApplyTexas, the college's degree plans, TCCNS, and the university's transfer equivalency tool instead.
+- "majorCourses": in "notes", always state whether the course counts toward the major/degree at the destination or transfers as elective credit only.
+
 
 IMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no explanation. Just the JSON object.`;
 
