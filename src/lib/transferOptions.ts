@@ -114,6 +114,10 @@ export const gePatternLabel = (sys: string | null | undefined): string => {
   const s = (sys || '').trim().toUpperCase();
   if (s === 'UC' || s === 'UC SYSTEM' || s === 'IGETC') return 'IGETC';
   if (s === 'CSU' || s === 'CSU SYSTEM' || s === 'CAL-GETC') return 'Cal-GETC';
-  if (isTexasDestination(sys)) return 'Texas Core Curriculum';
+  // Texas uses the state Core Curriculum, but on the dashboard we surface the
+  // generic "General Education / GE" label so students never see California-only
+  // terms (IGETC/Cal-GETC) on a Texas route. The Texas-specific description is
+  // rendered separately on the GE tab.
+  if (isTexasDestination(sys)) return 'General Education';
   return 'General Education';
 };
