@@ -90,17 +90,19 @@ const CreateRoutePage = () => {
       }
 
       // Create route
-      const routeName = `${form.communityCollege} → ${form.major} (${form.majorTrack || 'AS-T'})`;
+      const degree = form.majorTrack || degreeOptions[0].value;
+      const routeName = `${form.communityCollege} → ${form.major} (${degree})`;
       const { data: route, error: routeError } = await supabase.from('routes').insert({
         user_id: user.id,
         route_name: routeName,
         community_college: form.communityCollege,
         major: form.major,
-        destination_university: form.destinationUniversity || 'CSU',
-        destination_program: form.destinationProgram || `${form.major} ${form.majorTrack || 'AS-T'}`,
+        destination_university: form.destinationUniversity || destinationOptions[0].value,
+        destination_program: form.destinationProgram || `${form.major} ${degree}`,
         transfer_term: form.transferTerm || null,
         status: 'processing' as const,
       }).select().single();
+
 
       if (routeError) throw routeError;
 
