@@ -39,7 +39,7 @@ const HomePage = () => {
           <div>
             <span className="inline-flex items-center gap-1.5 bg-gold-soft text-gold-deep px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
               <Sparkles className="h-3.5 w-3.5" />
-              For California transfer students
+              For transfer students
             </span>
             <h1 className="font-display font-semibold text-5xl lg:text-6xl leading-tight text-berkeley mt-6">
             Plan your transfer.<br />
