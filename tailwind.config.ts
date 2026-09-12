@@ -33,6 +33,17 @@ export default {
           soft: '#FFF4D9',
           deep: '#8C5E00',
         },
+        ink: {
+          DEFAULT: '#102A43',
+          muted: '#52667A',
+        },
+        brightblue: {
+          DEFAULT: '#2563EB',
+          light: '#3B82F6',
+        },
+        softblue: '#EEF5FF',
+        offwhite: '#F8FAFC',
+        emeraldbrand: '#159A61',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
