@@ -54,9 +54,14 @@ const AccountPage = () => {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Credits & Billing</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Unlocks & Billing</CardTitle></CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary mb-4">{credits} credit{credits !== 1 ? 's' : ''} remaining</div>
+          <div className="text-2xl font-bold text-primary mb-1">
+            {unlocks.unlimited
+              ? 'Unlimited unlocks active'
+              : `${unlocks.used} of ${unlocks.used + unlocks.available} route unlocks used`}
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Creating routes is always free. Unlocks open the paid sections of a route dashboard.</p>
           {purchases.length > 0 ? (
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Purchase History</h4>
