@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useWriterUnlock } from '@/hooks/useWriterUnlock';
+import WriterUnlockCard from '@/components/unlock/WriterUnlockCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -106,6 +108,19 @@ const ScholarshipDetailPage = () => {
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user, scholarshipId]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (!user || searchParams.get('payment') !== 'success') return;
+    (async () => {
+      const { data } = await supabase.functions.invoke('verify-payment');
+      if ((data as any)?.unlocked > 0) toast.success('Scholarship Writer unlocked!');
+      searchParams.delete('payment');
+      setSearchParams(searchParams, { replace: true });
+      window.location.reload();
+    })();
+    /* eslint-disable-next-line */
+  }, [user, searchParams]);
 
   const userGpa = profile?.current_gpa ?? routeGpa;
   const eligibility = useMemo(
@@ -310,6 +325,8 @@ const ApplicationWorkspace = ({ scholarship, application, essays, setEssays, onS
   const [notes, setNotes] = useState(application.notes || '');
   const [busy, setBusy] = useState<{ essayId: string; mode: string } | null>(null);
   const [generateElapsed, setGenerateElapsed] = useState(0);
+  const writer = useWriterUnlock();
+  const writerLocked = !writer.loading && !writer.active;
 
   const updateEssay = (id: string, patch: Partial<Essay>) => {
     setEssays(essays.map(e => e.id === id ? { ...e, ...patch } : e));
@@ -400,6 +417,8 @@ const ApplicationWorkspace = ({ scholarship, application, essays, setEssays, onS
                 </div>
                 {e.prompt && <p className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-2 italic">{e.prompt}</p>}
 
+                <div className="relative">
+                <div className={writerLocked ? 'space-y-3 blur-[5px] pointer-events-none select-none' : 'space-y-3'}>
                 {/* AI Toolbar */}
                 <div className="flex flex-wrap gap-2">
                   {isEmpty ? (
@@ -462,6 +481,16 @@ const ApplicationWorkspace = ({ scholarship, application, essays, setEssays, onS
                       </p>
                     </div>
                   )}
+                </div>
+                </div>
+                {writerLocked && (
+                  <>
+                    <div className="absolute inset-x-0 bottom-0 h-2/3 rounded-md bg-gradient-to-t from-white via-white/85 to-transparent" />
+                    <div className="absolute inset-0 flex items-center justify-center p-3">
+                      <WriterUnlockCard />
+                    </div>
+                  </>
+                )}
                 </div>
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span>{wc} words</span>

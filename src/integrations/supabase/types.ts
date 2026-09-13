@@ -778,6 +778,41 @@ export type Database = {
         }
         Relationships: []
       }
+      scholarship_writer_unlocks: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          purchase_id: string | null
+          tier: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          purchase_id?: string | null
+          tier: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          purchase_id?: string | null
+          tier?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scholarship_writer_unlocks_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scholarships: {
         Row: {
           active: boolean
@@ -999,6 +1034,7 @@ export type Database = {
         Returns: boolean
       }
       has_unlimited_unlocks: { Args: { _user_id: string }; Returns: boolean }
+      has_writer_access: { Args: { _user_id: string }; Returns: boolean }
       is_route_unlocked: {
         Args: { _route_id: string; _user_id: string }
         Returns: boolean
@@ -1033,6 +1069,14 @@ export type Database = {
         }[]
       }
       user_discovery_runs_today: { Args: { _user_id: string }; Returns: number }
+      writer_access_summary: {
+        Args: { _user_id: string }
+        Returns: {
+          active: boolean
+          expires_at: string
+          lifetime: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "student"
