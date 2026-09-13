@@ -35,7 +35,7 @@ serve(async (req) => {
     const name = unlock ? unlock.name : product.name;
     const amount = unlock ? unlock.price : product.price;
 
-    const successPath = return_path || (unlock ? '/app?payment=success' : '/app?payment=success');
+    const basePath = return_path || '/app';
 
     const sessionParams: any = {
       payment_method_types: ['card'],
