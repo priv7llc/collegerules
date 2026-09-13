@@ -23,15 +23,23 @@ serve(async (req) => {
       route_unlock_unlimited: { price: 1000, name: 'Unlimited Route Unlocks', unlock_type: 'unlimited', slots: 0 },
     };
 
+    // Scholarship Writer (AI essay tools) — account-wide, time-boxed access
+    const writerProducts: Record<string, { price: number; name: string; tier: string }> = {
+      writer_unlock_1mo: { price: 100, name: 'Scholarship Writer — 1 Month', tier: 'month' },
+      writer_unlock_3mo: { price: 300, name: 'Scholarship Writer — 3 Months', tier: 'three_month' },
+      writer_unlock_lifetime: { price: 1000, name: 'Scholarship Writer — Lifetime', tier: 'lifetime' },
+    };
+
     const origin = req.headers.get('origin');
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2023-10-16' });
 
     const unlock = unlockProducts[product_code];
+    const writer = writerProducts[product_code];
     const product = products[product_code];
-    if (!unlock && !product) throw new Error('Invalid product');
+    if (!unlock && !writer && !product) throw new Error('Invalid product');
 
-    const name = unlock ? unlock.name : product.name;
-    const amount = unlock ? unlock.price : product.price;
+    const name = unlock ? unlock.name : writer ? writer.name : product.name;
+    const amount = unlock ? unlock.price : writer ? writer.price : product.price;
 
     const basePath = return_path || '/app';
 
@@ -59,6 +67,8 @@ serve(async (req) => {
             slots: String(unlock.slots),
             route_id: route_id || '',
           }
+        : writer
+        ? { product_code, user_id, kind: 'writer', writer_tier: writer.tier }
         : { product_code, user_id, kind: 'credits', credits: String(product.credits) },
     };
 
