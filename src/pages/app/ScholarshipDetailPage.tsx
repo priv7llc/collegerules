@@ -310,6 +310,8 @@ const ApplicationWorkspace = ({ scholarship, application, essays, setEssays, onS
   const [notes, setNotes] = useState(application.notes || '');
   const [busy, setBusy] = useState<{ essayId: string; mode: string } | null>(null);
   const [generateElapsed, setGenerateElapsed] = useState(0);
+  const writer = useWriterUnlock();
+  const writerLocked = !writer.loading && !writer.active;
 
   const updateEssay = (id: string, patch: Partial<Essay>) => {
     setEssays(essays.map(e => e.id === id ? { ...e, ...patch } : e));
