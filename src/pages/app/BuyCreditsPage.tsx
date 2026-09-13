@@ -78,7 +78,7 @@ const BuyCreditsPage = () => {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="font-display text-3xl font-bold mb-2">Buy Route Credits</h1>
+        <h1 className="font-display text-3xl font-bold mb-2">Credits &amp; Unlocks</h1>
         <p className="text-muted-foreground">
           No subscriptions. Buy once and access your dashboards anytime.
         </p>
@@ -133,6 +133,46 @@ const BuyCreditsPage = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Dashboard unlocks */}
+      <div className="mt-12">
+        <div className="text-center mb-6">
+          <h2 className="font-display text-2xl font-bold mb-1">Unlock dashboard sections</h2>
+          <p className="text-muted-foreground text-sm">
+            Every route includes a free Overview and GE plan. Unlocks open Affordability, Major Courses,
+            Course Sequence, Transfer Guide and Resources.
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          {[
+            { code: 'route_unlock_5pack', name: '5 Route Unlocks', price: '$3', desc: 'Unlock every section on any 5 routes. Slots never expire.', badge: 'BEST VALUE' },
+            { code: 'route_unlock_unlimited', name: 'Unlimited Unlocks', price: '$10', desc: 'Every section on every route you ever create.', badge: null },
+          ].map((u) => (
+            <Card key={u.code} className={`border-2 relative ${u.badge ? 'border-accent shadow-lg' : 'shadow-md'}`}>
+              {u.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">
+                  {u.badge}
+                </div>
+              )}
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="font-display text-xl">{u.name}</CardTitle>
+                <div className="text-4xl font-bold text-primary mt-2">{u.price}</div>
+                <p className="text-sm text-muted-foreground mt-1">One-time payment</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground text-center">{u.desc}</p>
+                <Button className="w-full" disabled={loading !== null} onClick={() => handleBuy(u.code)}>
+                  {loading === u.code ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Opening checkout...</>
+                  ) : (
+                    `Buy ${u.name}`
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center gap-2 max-w-sm mx-auto mt-6">
