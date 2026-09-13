@@ -75,9 +75,10 @@ const BuyCreditsPage = () => {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="text-center mb-8">
-        <h1 className="font-display text-3xl font-bold mb-2">Credits &amp; Unlocks</h1>
+        <h1 className="font-display text-3xl font-bold mb-2">Route Unlocks</h1>
         <p className="text-muted-foreground">
-          No subscriptions. Buy once and access your dashboards anytime.
+          Creating routes is free. Every route includes a free Overview and GE plan — unlocks open
+          Affordability, Major Courses, Course Sequence, Transfer Guide and Resources. No subscriptions.
         </p>
       </div>
 
