@@ -30,6 +30,7 @@ const iconMap: Record<string, any> = {
 const RouteDashboardPage = () => {
   const { routeId } = useParams<{ routeId: string }>();
   const { user } = useAuth();
+  const { unlocked, availableSlots, redeemSlot } = useRouteUnlock(routeId);
   const [route, setRoute] = useState<any>(null);
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});
@@ -316,12 +317,18 @@ const RouteDashboardPage = () => {
         </TabsContent>
 
         {/* ===== AFFORDABILITY TAB ===== */}
-        <TabsContent value="affordability" className="space-y-6 mt-6">
-          <AffordabilityTab routeId={routeId!} destinationUniversity={route?.destination_university || ''} />
+        <TabsContent value="affordability" className="mt-6">
+          <LockedPanel {...lockProps('Affordability')}>
+            <div className="space-y-6">
+              <AffordabilityTab routeId={routeId!} destinationUniversity={route?.destination_university || ''} />
+            </div>
+          </LockedPanel>
         </TabsContent>
 
         {/* ===== MAJOR COURSES TAB ===== */}
-        <TabsContent value="major-courses" className="space-y-4 mt-6">
+        <TabsContent value="major-courses" className="mt-6">
+          <LockedPanel {...lockProps('Major Courses')}>
+          <div className="space-y-4">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Major Courses — {meta.majorUnits || '?'} Units</h2>
             <p className="text-sm text-muted-foreground">All required course areas. Every course must be completed with a grade of C or better.</p>
@@ -382,6 +389,8 @@ const RouteDashboardPage = () => {
               </CardContent>
             </Card>
           )}
+          </div>
+          </LockedPanel>
         </TabsContent>
 
         {/* ===== GENERAL EDUCATION TAB ===== */}
@@ -461,7 +470,9 @@ const RouteDashboardPage = () => {
         </TabsContent>
 
         {/* ===== COURSE SEQUENCE TAB ===== */}
-        <TabsContent value="course-sequence" className="space-y-4 mt-6">
+        <TabsContent value="course-sequence" className="mt-6">
+          <LockedPanel {...lockProps('Course Sequence')}>
+          <div className="space-y-4">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Recommended Course Sequence</h2>
             <p className="text-sm text-muted-foreground">A smart quarter-by-quarter plan that respects all prerequisites and avoids the most common bottlenecks.</p>
@@ -518,10 +529,14 @@ const RouteDashboardPage = () => {
               </CardContent>
             </Card>
           )}
+          </div>
+          </LockedPanel>
         </TabsContent>
 
         {/* ===== TRANSFER GUIDE TAB ===== */}
-        <TabsContent value="transfer-guide" className="space-y-4 mt-6">
+        <TabsContent value="transfer-guide" className="mt-6">
+          <LockedPanel {...lockProps('Transfer Guide')}>
+          <div className="space-y-4">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Transfer Guide</h2>
             <p className="text-sm text-muted-foreground">Step-by-step — everything you need to understand {isTexas ? 'the Texas transfer process and how your core curriculum works for you' : geLabel === 'IGETC' ? 'the UC transfer process and how your IGETC works for you' : 'the CSU transfer process and how your AS-T works for you'}.</p>
@@ -600,10 +615,14 @@ const RouteDashboardPage = () => {
               </Card>
             </div>
           )}
+          </div>
+          </LockedPanel>
         </TabsContent>
 
         {/* ===== RESOURCES TAB ===== */}
-        <TabsContent value="resources" className="space-y-4 mt-6">
+        <TabsContent value="resources" className="mt-6">
+          <LockedPanel {...lockProps('Resources')}>
+          <div className="space-y-4">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Official Resources & Contacts</h2>
             <p className="text-sm text-muted-foreground">Every link and contact you'll need — bookmarked in one place.</p>
@@ -649,6 +668,8 @@ const RouteDashboardPage = () => {
               ))}
             </CardContent>
           </Card>
+          </div>
+          </LockedPanel>
         </TabsContent>
       </Tabs>
     </div>
