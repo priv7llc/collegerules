@@ -60,6 +60,7 @@ serve(async (req) => {
 
       const productCode = session.metadata?.product_code || 'unknown';
       const credits = parseInt(session.metadata?.credits || '0');
+      const kind = session.metadata?.kind || 'credits';
 
       // Record purchase
       const { data: purchase, error: purchaseErr } = await supabaseAdmin.from('purchases').insert({
