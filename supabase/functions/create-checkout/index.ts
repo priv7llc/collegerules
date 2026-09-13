@@ -10,34 +10,58 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const { product_code, user_id, user_email, coupon_code } = await req.json();
-    
+    const { product_code, user_id, user_email, coupon_code, route_id, return_path } = await req.json();
+
+    // Legacy route-generation credit products (unchanged)
     const products: Record<string, { price: number; credits: number; name: string }> = {
       single_route: { price: 1000, credits: 1, name: '1 Transfer Route' },
       five_route_pack: { price: 2500, credits: 5, name: '5 Transfer Routes' },
     };
 
-    const product = products[product_code];
-    if (!product) throw new Error('Invalid product');
+    // New route-unlock products (additive, separate pricing)
+    const unlockProducts: Record<string, { price: number; name: string; unlock_type: string; slots: number }> = {
+      route_unlock_1: { price: 100, name: 'Unlock 1 Transfer Route', unlock_type: 'single', slots: 1 },
+      route_unlock_5pack: { price: 300, name: 'Unlock 5 Transfer Routes', unlock_type: 'five_pack', slots: 5 },
+      route_unlock_unlimited: { price: 1000, name: 'Unlimited Route Unlocks', unlock_type: 'unlimited', slots: 0 },
+    };
 
+    const origin = req.headers.get('origin');
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2023-10-16' });
+
+    const unlock = unlockProducts[product_code];
+    const product = products[product_code];
+    if (!unlock && !product) throw new Error('Invalid product');
+
+    const name = unlock ? unlock.name : product.name;
+    const amount = unlock ? unlock.price : product.price;
+
+    const successPath = return_path || (unlock ? '/app?payment=success' : '/app?payment=success');
 
     const sessionParams: any = {
       payment_method_types: ['card'],
       line_items: [{
         price_data: {
           currency: 'usd',
-          product_data: { name: product.name },
-          unit_amount: product.price,
+          product_data: { name },
+          unit_amount: amount,
         },
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/app?payment=success`,
-      cancel_url: `${req.headers.get('origin')}/app/buy-credits?payment=cancelled`,
+      success_url: `${origin}${successPath}${successPath.includes('?') ? '&' : '?'}payment=success`,
+      cancel_url: `${origin}${return_path || '/app/buy-credits'}${(return_path || '').includes('?') ? '&' : '?'}payment=cancelled`,
       client_reference_id: user_id,
       customer_email: user_email,
-      metadata: { product_code, user_id, credits: String(product.credits) },
+      metadata: unlock
+        ? {
+            product_code,
+            user_id,
+            kind: 'unlock',
+            unlock_type: unlock.unlock_type,
+            slots: String(unlock.slots),
+            route_id: route_id || '',
+          }
+        : { product_code, user_id, kind: 'credits', credits: String(product.credits) },
     };
 
     if (coupon_code) {

@@ -460,6 +460,51 @@ export type Database = {
           },
         ]
       }
+      route_unlocks: {
+        Row: {
+          created_at: string
+          id: string
+          purchase_id: string | null
+          route_id: string | null
+          slots: number | null
+          unlock_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          purchase_id?: string | null
+          route_id?: string | null
+          slots?: number | null
+          unlock_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          purchase_id?: string | null
+          route_id?: string | null
+          slots?: number | null
+          unlock_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_unlocks_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_unlocks_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       routes: {
         Row: {
           catalog_year: string | null
@@ -944,12 +989,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      available_unlock_slots: { Args: { _user_id: string }; Returns: number }
       get_remaining_credits: { Args: { _user_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      has_unlimited_unlocks: { Args: { _user_id: string }; Returns: boolean }
+      is_route_unlocked: {
+        Args: { _route_id: string; _user_id: string }
         Returns: boolean
       }
       match_scholarships_for_user: {
@@ -970,6 +1021,15 @@ export type Database = {
           name: string
           sponsor: string
           updated_at: string
+        }[]
+      }
+      redeem_unlock_slot: { Args: { _route_id: string }; Returns: boolean }
+      unlock_summary: {
+        Args: { _user_id: string }
+        Returns: {
+          available: number
+          unlimited: boolean
+          used: number
         }[]
       }
       user_discovery_runs_today: { Args: { _user_id: string }; Returns: number }

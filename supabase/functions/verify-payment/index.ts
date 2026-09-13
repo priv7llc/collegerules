@@ -42,6 +42,7 @@ serve(async (req) => {
     });
 
     let credited = 0;
+    let unlocked = 0;
 
     for (const session of sessions.data) {
       if (session.payment_status !== 'paid') continue;
@@ -60,6 +61,7 @@ serve(async (req) => {
 
       const productCode = session.metadata?.product_code || 'unknown';
       const credits = parseInt(session.metadata?.credits || '0');
+      const kind = session.metadata?.kind || 'credits';
 
       // Record purchase
       const { data: purchase, error: purchaseErr } = await supabaseAdmin.from('purchases').insert({
@@ -76,8 +78,30 @@ serve(async (req) => {
         continue;
       }
 
-      // Add credits
-      if (purchase && credits > 0) {
+      if (purchase && kind === 'unlock') {
+        const unlockType = session.metadata?.unlock_type;
+        const routeId = session.metadata?.route_id || null;
+        if (unlockType === 'unlimited') {
+          await supabaseAdmin.from('route_unlocks').insert({
+            user_id: user.id, route_id: null, unlock_type: 'unlimited', purchase_id: purchase.id,
+          });
+        } else if (unlockType === 'five_pack') {
+          await supabaseAdmin.from('route_unlocks').insert({
+            user_id: user.id, route_id: null, unlock_type: 'five_pack', slots: 5, purchase_id: purchase.id,
+          });
+          if (routeId) {
+            await supabaseAdmin.from('route_unlocks').insert({
+              user_id: user.id, route_id: routeId, unlock_type: 'five_pack_redemption', purchase_id: purchase.id,
+            });
+          }
+        } else if (unlockType === 'single' && routeId) {
+          await supabaseAdmin.from('route_unlocks').insert({
+            user_id: user.id, route_id: routeId, unlock_type: 'single', purchase_id: purchase.id,
+          });
+        }
+        unlocked += 1;
+      } else if (purchase && credits > 0) {
+        // Add credits
         await supabaseAdmin.from('route_credits').insert({
           user_id: user.id,
           purchase_id: purchase.id,
@@ -88,7 +112,7 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ credited, message: credited > 0 ? `${credited} credits added!` : 'No new credits to add' }), {
+    return new Response(JSON.stringify({ credited, unlocked, message: credited > 0 ? `${credited} credits added!` : unlocked > 0 ? 'Unlock applied!' : 'Nothing new to apply' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });

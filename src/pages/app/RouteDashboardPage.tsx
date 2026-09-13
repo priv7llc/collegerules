@@ -17,6 +17,9 @@ import { toast } from 'sonner';
 import { AffordabilityTab } from '@/components/AffordabilityTab';
 import type { DashboardPayload } from '@/lib/dashboardTypes';
 import { gePatternLabel, isTexasDestination } from '@/lib/transferOptions';
+import { Lock } from 'lucide-react';
+import { useRouteUnlock } from '@/hooks/useRouteUnlock';
+import { LockedPanel } from '@/components/unlock/LockedPanel';
 
 
 const iconMap: Record<string, any> = {
@@ -27,6 +30,7 @@ const iconMap: Record<string, any> = {
 const RouteDashboardPage = () => {
   const { routeId } = useParams<{ routeId: string }>();
   const { user } = useAuth();
+  const { unlocked, availableSlots, redeemSlot } = useRouteUnlock(routeId);
   const [route, setRoute] = useState<any>(null);
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});
@@ -148,67 +152,90 @@ const RouteDashboardPage = () => {
   const totalItems = majorTotal + geTotal + checklistTotal;
   const readyPct = totalItems > 0 ? Math.round(((majorDone + geDone + checklistDone) / totalItems) * 100) : 0;
 
+  const geTabLabel = isTexas ? 'GE / General Ed' : `${geLabel} / GE`;
+  const lockedTabNames = ['Affordability', 'Major Courses', 'Course Sequence', 'Transfer Guide', 'Resources'];
+  const lockProps = (name: string) => ({
+    locked: !unlocked,
+    tabName: name,
+    otherTabs: lockedTabNames.filter(n => n !== name),
+    routeId: routeId!,
+    availableSlots,
+    onRedeem: redeemSlot,
+  });
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in font-plex text-ink">
       {/* Back */}
       <div className="flex items-center justify-between gap-3 mb-2">
-        <Button variant="ghost" size="sm" asChild><Link to="/app"><ArrowLeft className="h-4 w-4 mr-1" />My Routes</Link></Button>
-        <Button variant="outline" size="sm" onClick={handleRegenerate} disabled={regenerating}>
+        <Button variant="ghost" size="sm" asChild className="text-ink-soft hover:text-ink px-0 hover:bg-transparent">
+          <Link to="/app"><ArrowLeft className="h-4 w-4 mr-1" />My Routes</Link>
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleRegenerate} disabled={regenerating} className="border-line bg-white text-ink hover:bg-surfacebase">
           <RefreshCw className={`h-4 w-4 mr-1 ${regenerating ? 'animate-spin' : ''}`} />
           {regenerating ? 'Regenerating…' : 'Regenerate'}
         </Button>
       </div>
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-primary to-primary/80 rounded-xl p-6 text-primary-foreground">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="bg-primary-foreground/20 rounded-full h-10 w-10 flex items-center justify-center font-bold text-sm">
+      {/* Header banner */}
+      <div className="rounded-[10px] p-6 text-white bg-[linear-gradient(135deg,#1E3A5F_0%,#16283F_100%)]">
+        <div className="flex items-center gap-3">
+          <div className="bg-white/15 rounded-full h-11 w-11 flex items-center justify-center font-semibold text-sm shrink-0">
             {meta.communityCollege?.substring(0, 2).toUpperCase() || 'CC'}
           </div>
           <div>
-            <h1 className="font-display text-xl md:text-2xl font-bold">{meta.communityCollege}</h1>
-            <p className="text-primary-foreground/80 text-sm">
+            <h1 className="font-serifhead text-lg md:text-xl font-semibold">{meta.communityCollege}</h1>
+            <p className="text-white/75 text-sm">
               {meta.degreeName || `${meta.major} ${meta.degreeType || 'AS-T'}`}
-              <Badge className="ml-2 bg-primary-foreground/20 text-primary-foreground border-0 text-xs">{meta.degreeType || 'AS-T'}</Badge>
+              <Badge className="ml-2 bg-white/15 text-white border-0 text-xs">{meta.degreeType || 'AS-T'}</Badge>
             </p>
           </div>
         </div>
       </div>
 
       {/* Progress Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'MAJOR COURSES', value: majorDone, total: majorTotal, icon: BookOpen, color: 'from-blue-500 to-blue-600' },
-          { label: isTexas ? 'GE AREAS' : (geLabel === 'IGETC' ? 'IGETC AREAS' : 'CAL-GETC AREAS'), value: geDone, total: geTotal, icon: BookMarked, color: 'from-emerald-500 to-emerald-600' },
-          { label: 'ACTION ITEMS', value: checklistDone, total: checklistTotal, icon: CheckCircle2, color: 'from-violet-500 to-violet-600' },
-          { label: 'DEGREE READY', value: readyPct, total: 100, pct: true, icon: Target, color: 'from-orange-500 to-orange-600' },
+          { label: 'MAJOR COURSES', value: majorDone, total: majorTotal, icon: BookOpen, color: 'from-[#3B82F6] to-[#2563EB]' },
+          { label: isTexas ? 'GE AREAS' : (geLabel === 'IGETC' ? 'IGETC AREAS' : 'CAL-GETC AREAS'), value: geDone, total: geTotal, icon: BookMarked, color: 'from-[#22C55E] to-[#16A34A]' },
+          { label: 'ACTION ITEMS', value: checklistDone, total: checklistTotal, icon: CheckCircle2, color: 'from-[#A78BFA] to-[#7C3AED]' },
+          { label: 'DEGREE READY', value: readyPct, total: 100, pct: true, icon: Target, color: 'from-[#FB923C] to-[#EA580C]' },
         ].map(m => (
-          <div key={m.label} className={`bg-gradient-to-br ${m.color} rounded-xl p-4 text-white`}>
-            <m.icon className="h-5 w-5 mb-2 opacity-80" />
-            <p className="text-xs font-medium opacity-80 tracking-wide">{m.label}</p>
-            <p className="text-2xl font-bold mt-1">{(m as any).pct ? `${m.value}%` : `${m.value} / ${m.total}`}</p>
-            <Progress value={m.total > 0 ? (m.value / m.total) * 100 : 0} className="mt-2 h-1.5 bg-white/20" />
+          <div key={m.label} className={`bg-gradient-to-br ${m.color} rounded-[10px] p-4 text-white`}>
+            <div className="flex items-center gap-1.5 mb-2">
+              <m.icon className="h-3.5 w-3.5 opacity-90" />
+              <p className="text-[11px] font-semibold opacity-90 tracking-wide">{m.label}</p>
+            </div>
+            <p className="font-serifhead text-2xl font-semibold">{(m as any).pct ? `${m.value}%` : `${m.value} / ${m.total}`}</p>
+            <Progress value={m.total > 0 ? (m.value / m.total) * 100 : 0} className="mt-3 h-1 bg-white/25" />
           </div>
         ))}
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-transparent p-0 border-b rounded-none pb-0">
-          {[
-            { value: 'overview', label: 'Overview', icon: Home },
-            { value: 'affordability', label: 'Affordability', icon: Wallet },
-            { value: 'major-courses', label: 'Major Courses', icon: List },
-            { value: 'cal-getc', label: isTexas ? 'GE / General Ed' : `${geLabel} / GE`, icon: BookMarked },
-            { value: 'course-sequence', label: 'Course Sequence', icon: Calendar },
-            { value: 'transfer-guide', label: 'Transfer Guide', icon: Route },
-            { value: 'resources', label: 'Resources', icon: Link2 },
-          ].map(tab => (
-            <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent rounded-none gap-1.5">
-              <tab.icon className="h-4 w-4" />{tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="relative">
+          <TabsList className="w-full justify-start h-auto gap-1 bg-transparent p-0 border-b border-line rounded-none pb-0 overflow-x-auto flex-nowrap scrollbar-none">
+            {[
+              { value: 'overview', label: 'Overview', icon: Home, locked: false },
+              { value: 'cal-getc', label: geTabLabel, icon: BookMarked, locked: false },
+              { value: 'affordability', label: 'Affordability', icon: Wallet, locked: true },
+              { value: 'major-courses', label: 'Major Courses', icon: List, locked: true },
+              { value: 'course-sequence', label: 'Course Sequence', icon: Calendar, locked: true },
+              { value: 'transfer-guide', label: 'Transfer Guide', icon: Route, locked: true },
+              { value: 'resources', label: 'Resources', icon: Link2, locked: true },
+            ].map(tab => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="shrink-0 rounded-none gap-1.5 text-ink-soft data-[state=active]:border-b-2 data-[state=active]:border-gold data-[state=active]:text-berkeley data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              >
+                <tab.icon className="h-4 w-4" />{tab.label}
+                {tab.locked && !unlocked && <Lock className="h-3 w-3 ml-0.5 opacity-70" />}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-surfacebase to-transparent md:hidden" />
+        </div>
 
         {/* ===== OVERVIEW TAB ===== */}
         <TabsContent value="overview" className="space-y-6 mt-6">
@@ -290,12 +317,18 @@ const RouteDashboardPage = () => {
         </TabsContent>
 
         {/* ===== AFFORDABILITY TAB ===== */}
-        <TabsContent value="affordability" className="space-y-6 mt-6">
-          <AffordabilityTab routeId={routeId!} destinationUniversity={route?.destination_university || ''} />
+        <TabsContent value="affordability" className="mt-6">
+          <LockedPanel {...lockProps('Affordability')}>
+            <div className="space-y-6">
+              <AffordabilityTab routeId={routeId!} destinationUniversity={route?.destination_university || ''} />
+            </div>
+          </LockedPanel>
         </TabsContent>
 
         {/* ===== MAJOR COURSES TAB ===== */}
-        <TabsContent value="major-courses" className="space-y-4 mt-6">
+        <TabsContent value="major-courses" className="mt-6">
+          <LockedPanel {...lockProps('Major Courses')}>
+          <div className="space-y-4">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Major Courses — {meta.majorUnits || '?'} Units</h2>
             <p className="text-sm text-muted-foreground">All required course areas. Every course must be completed with a grade of C or better.</p>
@@ -356,6 +389,8 @@ const RouteDashboardPage = () => {
               </CardContent>
             </Card>
           )}
+          </div>
+          </LockedPanel>
         </TabsContent>
 
         {/* ===== GENERAL EDUCATION TAB ===== */}
@@ -435,7 +470,9 @@ const RouteDashboardPage = () => {
         </TabsContent>
 
         {/* ===== COURSE SEQUENCE TAB ===== */}
-        <TabsContent value="course-sequence" className="space-y-4 mt-6">
+        <TabsContent value="course-sequence" className="mt-6">
+          <LockedPanel {...lockProps('Course Sequence')}>
+          <div className="space-y-4">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Recommended Course Sequence</h2>
             <p className="text-sm text-muted-foreground">A smart quarter-by-quarter plan that respects all prerequisites and avoids the most common bottlenecks.</p>
@@ -492,10 +529,14 @@ const RouteDashboardPage = () => {
               </CardContent>
             </Card>
           )}
+          </div>
+          </LockedPanel>
         </TabsContent>
 
         {/* ===== TRANSFER GUIDE TAB ===== */}
-        <TabsContent value="transfer-guide" className="space-y-4 mt-6">
+        <TabsContent value="transfer-guide" className="mt-6">
+          <LockedPanel {...lockProps('Transfer Guide')}>
+          <div className="space-y-4">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Transfer Guide</h2>
             <p className="text-sm text-muted-foreground">Step-by-step — everything you need to understand {isTexas ? 'the Texas transfer process and how your core curriculum works for you' : geLabel === 'IGETC' ? 'the UC transfer process and how your IGETC works for you' : 'the CSU transfer process and how your AS-T works for you'}.</p>
@@ -574,10 +615,14 @@ const RouteDashboardPage = () => {
               </Card>
             </div>
           )}
+          </div>
+          </LockedPanel>
         </TabsContent>
 
         {/* ===== RESOURCES TAB ===== */}
-        <TabsContent value="resources" className="space-y-4 mt-6">
+        <TabsContent value="resources" className="mt-6">
+          <LockedPanel {...lockProps('Resources')}>
+          <div className="space-y-4">
           <div className="mb-4">
             <h2 className="text-lg font-bold">Official Resources & Contacts</h2>
             <p className="text-sm text-muted-foreground">Every link and contact you'll need — bookmarked in one place.</p>
@@ -623,6 +668,8 @@ const RouteDashboardPage = () => {
               ))}
             </CardContent>
           </Card>
+          </div>
+          </LockedPanel>
         </TabsContent>
       </Tabs>
     </div>

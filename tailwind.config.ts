@@ -17,6 +17,8 @@ export default {
         sans: ['Inter', 'DM Sans', 'system-ui', 'sans-serif'],
         display: ['Space Grotesk', 'DM Sans', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        plex: ['IBM Plex Sans', 'Inter', 'system-ui', 'sans-serif'],
+        serifhead: ['Source Serif 4', 'Georgia', 'serif'],
       },
       backgroundColor: {
         cream: '#FAF7F0',
@@ -34,9 +36,17 @@ export default {
           deep: '#8C5E00',
         },
         ink: {
-          DEFAULT: '#102A43',
+          DEFAULT: '#111827',
+          soft: '#5B6472',
           muted: '#52667A',
         },
+        surfacebase: '#F5F6F8',
+        line: '#E4E7EB',
+        lawrence: '#1D5BBF',
+        urgent: '#DC2626',
+        successgreen: '#16A34A',
+        bannerfrom: '#1E3A5F',
+        bannerto: '#16283F',
         brightblue: {
           DEFAULT: '#2563EB',
           light: '#3B82F6',
