@@ -14,7 +14,7 @@ const TermsPage = () => (
       <p>While we build our data from official sources, requirements may change at any time. You must verify all requirements with your academic counselor and official institutional sources. We are not responsible for decisions made based on our data.</p>
 
       <h2>4. Purchases</h2>
-      <p>Route credits are purchased through one-time payments. Credits do not expire. Refunds are available within 7 days of purchase for unused credits.</p>
+      <p>Route unlocks are purchased through one-time payments. Unlocks do not expire. Refunds are available within 7 days of purchase for unused unlocks.</p>
 
       <h2>5. Account Responsibility</h2>
       <p>You are responsible for maintaining the security of your account and any activities that occur under it.</p>
