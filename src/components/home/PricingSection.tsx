@@ -12,20 +12,20 @@ const plans = [
     highlight: false,
   },
   {
-    name: 'Transfer Route',
-    price: '$10',
-    features: ['1 personalized route'],
-    cta: 'Build My Route',
-    to: '/pricing',
-    highlight: false,
-  },
-  {
-    name: 'Best Value',
-    price: '$25',
-    features: ['5 personalized routes'],
-    cta: 'Get 5 Routes',
+    name: '5 Route Unlocks',
+    price: '$3',
+    features: ['Full details on any 5 routes', 'Slots never expire'],
+    cta: 'Get 5 Unlocks',
     to: '/pricing',
     highlight: true,
+  },
+  {
+    name: 'Unlimited',
+    price: '$10',
+    features: ['Full details on every route', 'One-time payment'],
+    cta: 'Go Unlimited',
+    to: '/pricing',
+    highlight: false,
   },
 ];
 
@@ -77,8 +77,8 @@ export const PricingSection = () => (
       </div>
 
       <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-ink-muted">
-        A route is a personalized transfer plan for one community college, major and target university. Scholarships,
-        applications and planning tools stay free with your account.
+        Building routes is free — every route includes an overview and GE plan. Unlocks ($1 for one route) open
+        affordability, major courses, course sequence, transfer guide and resources.
       </p>
     </div>
   </section>
