@@ -109,6 +109,19 @@ const ScholarshipDetailPage = () => {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user, scholarshipId]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (!user || searchParams.get('payment') !== 'success') return;
+    (async () => {
+      const { data } = await supabase.functions.invoke('verify-payment');
+      if ((data as any)?.unlocked > 0) toast.success('Scholarship Writer unlocked!');
+      searchParams.delete('payment');
+      setSearchParams(searchParams, { replace: true });
+      window.location.reload();
+    })();
+    /* eslint-disable-next-line */
+  }, [user, searchParams]);
+
   const userGpa = profile?.current_gpa ?? routeGpa;
   const eligibility = useMemo(
     () => scholarship ? evaluateEligibility(scholarship.eligibility_criteria, profile, userGpa) : [],
