@@ -9,31 +9,28 @@ import { toast } from 'sonner';
 
 const products = [
   {
-    code: 'single_route',
-    name: '1 Transfer Route',
-    price: '$10',
-    description: 'One route = one community college + one major + one destination university',
-    badge: null,
+    code: 'route_unlock_5pack',
+    name: '5 Route Unlocks',
+    price: '$3',
+    description: 'Unlock every section on any 5 routes. Slots never expire.',
+    badge: 'BEST VALUE',
   },
   {
-    code: 'five_route_pack',
-    name: '5 Transfer Routes',
-    price: '$25',
-    description: 'Five separate routes. Explore different colleges, majors, or universities.',
-    badge: 'BEST VALUE',
-    extra: '5 separate dashboards with isolated progress',
+    code: 'route_unlock_unlimited',
+    name: 'Unlimited Unlocks',
+    price: '$10',
+    description: 'Every section on every route you ever create.',
+    badge: null,
   },
 ];
 
 const features = [
-  'Personalized transfer dashboard',
-  'Interactive course checklists',
-  'Major course tracking with progress',
-  'GE/Transfer pattern completion',
+  'Affordability & cost gap analysis',
+  'Major course requirements',
   'Term-by-term course sequence',
-  'Official resource links',
   'Transfer guide & milestones',
-  'Save & return anytime',
+  'Official resource links',
+  'Progress tracking that saves',
 ];
 
 const BuyCreditsPage = () => {
