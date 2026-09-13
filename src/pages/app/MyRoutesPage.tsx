@@ -78,8 +78,7 @@ const MyRoutesPage = () => {
     const verify = async () => {
       try {
         const { data } = await supabase.functions.invoke('verify-payment');
-        if (data?.credited > 0) toast.success(`${data.credited} credit${data.credited > 1 ? 's' : ''} added to your account!`);
-        else if (data?.unlocked > 0) toast.success('Unlock applied!');
+        if (data?.unlocked > 0) toast.success('Unlock applied!');
         else toast.info('Payment received — already applied.');
       } catch {
         toast.error('Could not verify payment. It may take a moment to appear.');
