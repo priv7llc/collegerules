@@ -10,13 +10,21 @@ export interface UnlockState {
   loading: boolean;
 }
 
-export const UNLOCK_TIERS = [
+export type UnlockTierId = 'route_unlock_1' | 'route_unlock_5pack' | 'route_unlock_unlimited';
+
+export interface UnlockTier {
+  id: UnlockTierId;
+  label: string;
+  price: number;
+  cta: string;
+  best?: boolean;
+}
+
+export const UNLOCK_TIERS: UnlockTier[] = [
   { id: 'route_unlock_1', label: 'This route', price: 1, cta: 'Unlock this route — $1' },
   { id: 'route_unlock_5pack', label: '5 routes', price: 3, cta: 'Unlock 5 routes — $3', best: true },
   { id: 'route_unlock_unlimited', label: 'Unlimited', price: 10, cta: 'Unlock everything — $10' },
-] as const;
-
-export type UnlockTierId = (typeof UNLOCK_TIERS)[number]['id'];
+];
 
 export const startUnlockCheckout = async (
   productCode: UnlockTierId,
