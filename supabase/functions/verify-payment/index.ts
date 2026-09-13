@@ -42,6 +42,7 @@ serve(async (req) => {
     });
 
     let credited = 0;
+    let unlocked = 0;
 
     for (const session of sessions.data) {
       if (session.payment_status !== 'paid') continue;
