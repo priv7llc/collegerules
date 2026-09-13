@@ -402,6 +402,8 @@ const ApplicationWorkspace = ({ scholarship, application, essays, setEssays, onS
                 </div>
                 {e.prompt && <p className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-2 italic">{e.prompt}</p>}
 
+                <div className="relative">
+                <div className={writerLocked ? 'space-y-3 blur-[5px] pointer-events-none select-none' : 'space-y-3'}>
                 {/* AI Toolbar */}
                 <div className="flex flex-wrap gap-2">
                   {isEmpty ? (
