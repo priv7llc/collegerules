@@ -81,13 +81,7 @@ const CreateRoutePage = () => {
     setSubmitting(true);
 
     try {
-      // Check credits
-      const { data: credits } = await supabase.rpc('get_remaining_credits', { _user_id: user.id });
-      if (!credits || (credits as number) <= 0) {
-        toast.error('No route credits remaining. Please purchase more.');
-        navigate('/pricing');
-        return;
-      }
+      // Route generation is free — no credit check.
 
       // Create route
       const degree = form.majorTrack || degreeOptions[0].value;
