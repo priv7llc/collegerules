@@ -77,8 +77,30 @@ serve(async (req) => {
         continue;
       }
 
-      // Add credits
-      if (purchase && credits > 0) {
+      if (purchase && kind === 'unlock') {
+        const unlockType = session.metadata?.unlock_type;
+        const routeId = session.metadata?.route_id || null;
+        if (unlockType === 'unlimited') {
+          await supabaseAdmin.from('route_unlocks').insert({
+            user_id: user.id, route_id: null, unlock_type: 'unlimited', purchase_id: purchase.id,
+          });
+        } else if (unlockType === 'five_pack') {
+          await supabaseAdmin.from('route_unlocks').insert({
+            user_id: user.id, route_id: null, unlock_type: 'five_pack', slots: 5, purchase_id: purchase.id,
+          });
+          if (routeId) {
+            await supabaseAdmin.from('route_unlocks').insert({
+              user_id: user.id, route_id: routeId, unlock_type: 'five_pack_redemption', purchase_id: purchase.id,
+            });
+          }
+        } else if (unlockType === 'single' && routeId) {
+          await supabaseAdmin.from('route_unlocks').insert({
+            user_id: user.id, route_id: routeId, unlock_type: 'single', purchase_id: purchase.id,
+          });
+        }
+        unlocked += 1;
+      } else if (purchase && credits > 0) {
+        // Add credits
         await supabaseAdmin.from('route_credits').insert({
           user_id: user.id,
           purchase_id: purchase.id,
