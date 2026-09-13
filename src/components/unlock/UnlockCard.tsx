@@ -41,7 +41,7 @@ export const UnlockCard = ({ tabName, otherTabs, routeId, availableSlots, onRede
     try {
       const ok = await onRedeem();
       if (ok) toast.success('Route unlocked!');
-      else toast.error('No unlock slots left.');
+      else toast.error("Couldn't use an unlock on this route.");
     } catch (e: any) {
       toast.error(e.message || 'Could not unlock');
     } finally {
