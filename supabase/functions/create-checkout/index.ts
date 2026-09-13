@@ -12,13 +12,11 @@ serve(async (req) => {
   try {
     const { product_code, user_id, user_email, coupon_code, route_id, return_path } = await req.json();
 
-    // Legacy route-generation credit products (unchanged)
-    const products: Record<string, { price: number; credits: number; name: string }> = {
-      single_route: { price: 1000, credits: 1, name: '1 Transfer Route' },
-      five_route_pack: { price: 2500, credits: 5, name: '5 Transfer Routes' },
-    };
+    // Route-unlock products are the only purchase path.
+    // Route generation itself is free; legacy credit products are retired.
+    const products: Record<string, { price: number; credits: number; name: string }> = {};
 
-    // New route-unlock products (additive, separate pricing)
+
     const unlockProducts: Record<string, { price: number; name: string; unlock_type: string; slots: number }> = {
       route_unlock_1: { price: 100, name: 'Unlock 1 Transfer Route', unlock_type: 'single', slots: 1 },
       route_unlock_5pack: { price: 300, name: 'Unlock 5 Transfer Routes', unlock_type: 'five_pack', slots: 5 },

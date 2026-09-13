@@ -13,7 +13,7 @@ const AccountPage = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
-  const [credits, setCredits] = useState(0);
+  const [unlocks, setUnlocks] = useState<{ unlimited: boolean; used: number; available: number }>({ unlimited: false, used: 0, available: 0 });
   const [purchases, setPurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,11 +22,12 @@ const AccountPage = () => {
     const load = async () => {
       const [{ data: p }, { data: c }, { data: pur }] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
-        supabase.rpc('get_remaining_credits', { _user_id: user.id }),
+        supabase.rpc('unlock_summary', { _user_id: user.id }),
         supabase.from('purchases').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ]);
       setProfile(p);
-      setCredits((c as number) || 0);
+      const s: any = Array.isArray(c) ? c[0] : c;
+      setUnlocks({ unlimited: !!s?.unlimited, used: s?.used ?? 0, available: s?.available ?? 0 });
       setPurchases(pur || []);
       setLoading(false);
     };
@@ -53,15 +54,26 @@ const AccountPage = () => {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Credits & Billing</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><CreditCard className="h-5 w-5" />Unlocks & Billing</CardTitle></CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-primary mb-4">{credits} credit{credits !== 1 ? 's' : ''} remaining</div>
+          <div className="text-2xl font-bold text-primary mb-1">
+            {unlocks.unlimited
+              ? 'Unlimited unlocks active'
+              : `${unlocks.used} of ${unlocks.used + unlocks.available} route unlocks used`}
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Creating routes is always free. Unlocks open the paid sections of a route dashboard.</p>
           {purchases.length > 0 ? (
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Purchase History</h4>
               {purchases.map(p => (
                 <div key={p.id} className="flex justify-between items-center text-sm border-b pb-2">
-                  <span>{p.product_code === 'five_route_pack' ? '5 Routes' : '1 Route'}</span>
+                  <span>{({
+                    route_unlock_1: 'Unlock — 1 route',
+                    route_unlock_5pack: 'Unlock — 5 routes',
+                    route_unlock_unlimited: 'Unlimited unlocks',
+                    five_route_pack: '5 Routes (legacy)',
+                    single_route: '1 Route (legacy)',
+                  } as Record<string, string>)[p.product_code] || p.product_code}</span>
                   <span className="text-muted-foreground">${(p.amount_cents / 100).toFixed(2)}</span>
                   <span className="text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</span>
                 </div>

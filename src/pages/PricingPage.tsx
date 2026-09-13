@@ -3,15 +3,41 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2 } from 'lucide-react';
 
-const features = [
-  'Personalized transfer dashboard',
-  'Interactive course checklists',
-  'Major course tracking with progress',
-  'GE/Transfer pattern completion',
-  'Term-by-term course sequence',
-  'Official resource links',
-  'Transfer guide & milestones',
+const freeFeatures = [
+  'Unlimited transfer routes',
+  'Route Overview with your plan summary',
+  'GE / transfer pattern checklist',
+  'Scholarship matching & applications',
   'Save & return anytime',
+];
+
+const unlockFeatures = [
+  'Affordability & cost gap analysis',
+  'Major course requirements',
+  'Term-by-term course sequence',
+  'Transfer guide & milestones',
+  'Official resource links',
+];
+
+const tiers = [
+  {
+    name: '1 Route Unlock',
+    price: '$1',
+    blurb: 'Open every section on one route.',
+    badge: null as string | null,
+  },
+  {
+    name: '5 Route Unlocks',
+    price: '$3',
+    blurb: 'Open every section on any five routes. Slots never expire.',
+    badge: 'BEST VALUE',
+  },
+  {
+    name: 'Unlimited Unlocks',
+    price: '$10',
+    blurb: 'Every section on every route you ever create.',
+    badge: null,
+  },
 ];
 
 const PricingPage = () => {
@@ -21,61 +47,63 @@ const PricingPage = () => {
         <div className="text-center mb-16">
           <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">Simple, One-Time Pricing</h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-            No subscriptions. Buy your routes once and access your dashboards anytime.
+            Building transfer routes is free. Pay once — only when you want to open the in-depth sections.
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2 max-w-3xl mx-auto">
-          {/* Single Route */}
-          <Card className="border-2 shadow-md">
-            <CardHeader className="text-center pb-2">
-              <CardTitle className="font-display text-xl">1 Transfer Route</CardTitle>
-              <div className="text-4xl font-bold text-primary mt-2">$10</div>
-              <p className="text-sm text-muted-foreground mt-1">One-time payment</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
-                One route = one community college + one major + one destination university
-              </p>
-              <ul className="space-y-2">
-                {features.map(f => (
-                  <li key={f} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Button asChild className="w-full mt-4"><Link to="/signup">Buy 1 Route</Link></Button>
-            </CardContent>
-          </Card>
-
-          {/* 5-Route Pack */}
-          <Card className="border-2 border-accent shadow-lg relative">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">BEST VALUE</div>
-            <CardHeader className="text-center pb-2">
-              <CardTitle className="font-display text-xl">5 Transfer Routes</CardTitle>
-              <div className="text-4xl font-bold text-primary mt-2">$25</div>
-              <p className="text-sm text-muted-foreground mt-1">One-time payment · Save $25</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
-                Five separate routes. Explore different colleges, majors, or universities.
-              </p>
-              <ul className="space-y-2">
-                {features.map(f => (
-                  <li key={f} className="flex items-start gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-                <li className="flex items-start gap-2 text-sm font-medium">
-                  <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
-                  5 separate dashboards with isolated progress
+        <Card className="border-2 shadow-md max-w-3xl mx-auto mb-12">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="font-display text-xl">Free Account</CardTitle>
+            <div className="text-4xl font-bold text-primary mt-2">$0</div>
+            <p className="text-sm text-muted-foreground mt-1">No card required</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {freeFeatures.map(f => (
+                <li key={f} className="flex items-start gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
+                  {f}
                 </li>
-              </ul>
-              <Button asChild className="w-full mt-4"><Link to="/signup">Buy 5 Routes</Link></Button>
-            </CardContent>
-          </Card>
+              ))}
+            </ul>
+            <Button asChild className="w-full mt-4"><Link to="/signup">Create Free Account</Link></Button>
+          </CardContent>
+        </Card>
+
+        <div className="text-center mb-6">
+          <h2 className="font-display text-2xl font-bold">Route unlocks</h2>
+          <p className="text-sm text-muted-foreground mt-1 max-w-xl mx-auto">
+            Unlocks open Affordability, Major Courses, Course Sequence, Transfer Guide and Resources on a route.
+          </p>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
+          {tiers.map(t => (
+            <Card key={t.name} className={`relative border-2 ${t.badge ? 'border-accent shadow-lg' : 'shadow-md'}`}>
+              {t.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">
+                  {t.badge}
+                </div>
+              )}
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="font-display text-xl">{t.name}</CardTitle>
+                <div className="text-4xl font-bold text-primary mt-2">{t.price}</div>
+                <p className="text-sm text-muted-foreground mt-1">One-time payment</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground text-center">{t.blurb}</p>
+                <ul className="space-y-2">
+                  {unlockFeatures.map(f => (
+                    <li key={f} className="flex items-start gap-2 text-sm">
+                      <CheckCircle2 className="h-4 w-4 text-success mt-0.5 shrink-0" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Button asChild className="w-full mt-4"><Link to="/signup">Get Started</Link></Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         <div className="text-center mt-12 text-sm text-muted-foreground max-w-lg mx-auto">

@@ -8,7 +8,7 @@ const faqs = [
   },
   {
     q: 'Do I need to pay to use College Rules?',
-    a: 'No. Creating an account, building your scholarship profile, viewing matches and tracking applications are free. Personalized transfer routes are $10 for one or $25 for five.',
+    a: 'No. Creating an account, building your scholarship profile, viewing matches and tracking applications are free. Building transfer routes is free too — unlocking a route’s full details is $1 for one route, $3 for five, or $10 for unlimited.',
   },
   {
     q: 'Which states are supported?',

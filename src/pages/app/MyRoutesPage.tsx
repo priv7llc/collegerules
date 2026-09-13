@@ -39,29 +39,28 @@ const statusPill: Record<string, { label: string; cls: string }> = {
 const MyRoutesPage = () => {
   const { user } = useAuth();
   const [routes, setRoutes] = useState<RouteRecord[]>([]);
-  const [credits, setCredits] = useState(0);
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
   const [unlimited, setUnlimited] = useState(false);
   const [slots, setSlots] = useState(0);
+  const [used, setUsed] = useState(0);
   const [progress, setProgress] = useState<Record<string, { done: number; total: number }>>({});
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const loadData = useCallback(async () => {
     if (!user) return;
-    const [{ data: routeData }, { data: creditData }, { data: summary }, { data: unlockRows }, { data: courseRows }] = await Promise.all([
+    const [{ data: routeData }, { data: summary }, { data: unlockRows }, { data: courseRows }] = await Promise.all([
       supabase.from('routes').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
-      supabase.rpc('get_remaining_credits', { _user_id: user.id }),
       supabase.rpc('unlock_summary', { _user_id: user.id }),
       supabase.from('route_unlocks').select('route_id').eq('user_id', user.id).not('route_id', 'is', null),
       supabase.from('course_progress').select('route_id,status'),
     ]);
 
     setRoutes((routeData as RouteRecord[]) || []);
-    setCredits((creditData as number) || 0);
     const s: any = Array.isArray(summary) ? summary[0] : summary;
     setUnlimited(!!s?.unlimited);
     setSlots(s?.available ?? 0);
+    setUsed(s?.used ?? 0);
     setUnlockedIds(new Set((unlockRows || []).map((r: any) => r.route_id)));
 
     const p: Record<string, { done: number; total: number }> = {};
@@ -79,8 +78,7 @@ const MyRoutesPage = () => {
     const verify = async () => {
       try {
         const { data } = await supabase.functions.invoke('verify-payment');
-        if (data?.credited > 0) toast.success(`${data.credited} credit${data.credited > 1 ? 's' : ''} added to your account!`);
-        else if (data?.unlocked > 0) toast.success('Unlock applied!');
+        if (data?.unlocked > 0) toast.success('Unlock applied!');
         else toast.info('Payment received — already applied.');
       } catch {
         toast.error('Could not verify payment. It may take a moment to appear.');
@@ -103,15 +101,20 @@ const MyRoutesPage = () => {
           <p className="text-ink-soft text-sm">Every route you've planned, in one place.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-ink-soft">
-            <CreditCard className="h-3.5 w-3.5" />{credits} route credit{credits !== 1 ? 's' : ''}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-ink-soft">
-            {unlimited ? <><InfinityIcon className="h-3.5 w-3.5 text-successgreen" />Unlimited unlocks</> : <><Unlock className="h-3.5 w-3.5" />{slots} unlock{slots !== 1 ? 's' : ''} left</>}
-          </span>
+          {unlimited ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-ink-soft">
+              <InfinityIcon className="h-3.5 w-3.5 text-successgreen" />Unlimited unlocks active
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-ink-soft">
+              <Unlock className="h-3.5 w-3.5" />
+              {used} of {used + slots} route unlocks used
+              <Link to="/app/buy-credits" className="font-semibold text-berkeley hover:underline">· Go unlimited</Link>
+            </span>
+          )}
           <Button asChild className="bg-berkeley hover:bg-berkeley-deep text-white">
-            <Link to={credits > 0 ? '/app/create' : '/app/buy-credits'}>
-              <PlusCircle className="h-4 w-4 mr-2" />{credits > 0 ? 'Create Route' : 'Buy Credits'}
+            <Link to="/app/create">
+              <PlusCircle className="h-4 w-4 mr-2" />Create Route
             </Link>
           </Button>
         </div>
@@ -123,12 +126,10 @@ const MyRoutesPage = () => {
             <FolderOpen className="h-12 w-12 text-ink-soft/50 mb-4" />
             <h3 className="font-serifhead text-lg font-semibold mb-2">No routes yet</h3>
             <p className="text-ink-soft text-sm mb-4 text-center max-w-sm">
-              {credits > 0
-                ? 'Create your first transfer route to get a personalized dashboard.'
-                : 'Purchase route credits to get started with your transfer planning.'}
+              Create your first transfer route — it's free, and you'll get a personalized dashboard in minutes.
             </p>
             <Button asChild className="bg-berkeley hover:bg-berkeley-deep text-white">
-              <Link to={credits > 0 ? '/app/create' : '/app/buy-credits'}>{credits > 0 ? 'Create Your First Route' : 'View Pricing'}</Link>
+              <Link to="/app/create">Create Your First Route</Link>
             </Button>
           </CardContent>
         </Card>
@@ -182,12 +183,12 @@ const MyRoutesPage = () => {
           })}
 
           <Link
-            to={credits > 0 ? '/app/create' : '/app/buy-credits'}
+            to="/app/create"
             className="flex min-h-[200px] flex-col items-center justify-center rounded-[10px] border border-dashed border-line bg-white/60 p-5 text-center transition hover:border-berkeley/50 hover:bg-white"
           >
             <PlusCircle className="h-7 w-7 text-berkeley mb-2" />
             <span className="font-serifhead text-base font-semibold">Add another route</span>
-            <span className="text-xs text-ink-soft mt-1">{credits > 0 ? `${credits} credit${credits !== 1 ? 's' : ''} available` : 'Buy a credit to plan another transfer'}</span>
+            <span className="text-xs text-ink-soft mt-1">Free to create — plan another transfer</span>
           </Link>
         </div>
       )}
