@@ -467,6 +467,16 @@ const ApplicationWorkspace = ({ scholarship, application, essays, setEssays, onS
                     </div>
                   )}
                 </div>
+                </div>
+                {writerLocked && (
+                  <>
+                    <div className="absolute inset-x-0 bottom-0 h-2/3 rounded-md bg-gradient-to-t from-white via-white/85 to-transparent" />
+                    <div className="absolute inset-0 flex items-center justify-center p-3">
+                      <WriterUnlockCard />
+                    </div>
+                  </>
+                )}
+                </div>
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span>{wc} words</span>
                   <Button size="sm" variant="secondary" onClick={() => saveEssay(e)}>
