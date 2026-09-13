@@ -183,12 +183,12 @@ const MyRoutesPage = () => {
           })}
 
           <Link
-            to={credits > 0 ? '/app/create' : '/app/buy-credits'}
+            to="/app/create"
             className="flex min-h-[200px] flex-col items-center justify-center rounded-[10px] border border-dashed border-line bg-white/60 p-5 text-center transition hover:border-berkeley/50 hover:bg-white"
           >
             <PlusCircle className="h-7 w-7 text-berkeley mb-2" />
             <span className="font-serifhead text-base font-semibold">Add another route</span>
-            <span className="text-xs text-ink-soft mt-1">{credits > 0 ? `${credits} credit${credits !== 1 ? 's' : ''} available` : 'Buy a credit to plan another transfer'}</span>
+            <span className="text-xs text-ink-soft mt-1">Free to create — plan another transfer</span>
           </Link>
         </div>
       )}
