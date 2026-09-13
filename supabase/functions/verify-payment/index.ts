@@ -112,7 +112,7 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ credited, message: credited > 0 ? `${credited} credits added!` : 'No new credits to add' }), {
+    return new Response(JSON.stringify({ credited, unlocked, message: credited > 0 ? `${credited} credits added!` : unlocked > 0 ? 'Unlock applied!' : 'Nothing new to apply' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
