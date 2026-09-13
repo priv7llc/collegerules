@@ -67,7 +67,13 @@ const AccountPage = () => {
               <h4 className="text-sm font-medium">Purchase History</h4>
               {purchases.map(p => (
                 <div key={p.id} className="flex justify-between items-center text-sm border-b pb-2">
-                  <span>{p.product_code === 'five_route_pack' ? '5 Routes' : '1 Route'}</span>
+                  <span>{({
+                    route_unlock_1: 'Unlock — 1 route',
+                    route_unlock_5pack: 'Unlock — 5 routes',
+                    route_unlock_unlimited: 'Unlimited unlocks',
+                    five_route_pack: '5 Routes (legacy)',
+                    single_route: '1 Route (legacy)',
+                  } as Record<string, string>)[p.product_code] || p.product_code}</span>
                   <span className="text-muted-foreground">${(p.amount_cents / 100).toFixed(2)}</span>
                   <span className="text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</span>
                 </div>
