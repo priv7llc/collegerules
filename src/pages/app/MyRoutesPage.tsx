@@ -101,15 +101,20 @@ const MyRoutesPage = () => {
           <p className="text-ink-soft text-sm">Every route you've planned, in one place.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-ink-soft">
-            <CreditCard className="h-3.5 w-3.5" />{credits} route credit{credits !== 1 ? 's' : ''}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-ink-soft">
-            {unlimited ? <><InfinityIcon className="h-3.5 w-3.5 text-successgreen" />Unlimited unlocks</> : <><Unlock className="h-3.5 w-3.5" />{slots} unlock{slots !== 1 ? 's' : ''} left</>}
-          </span>
+          {unlimited ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-ink-soft">
+              <InfinityIcon className="h-3.5 w-3.5 text-successgreen" />Unlimited unlocks active
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-ink-soft">
+              <Unlock className="h-3.5 w-3.5" />
+              {used} of {used + slots} route unlocks used
+              <Link to="/app/buy-credits" className="font-semibold text-berkeley hover:underline">· Go unlimited</Link>
+            </span>
+          )}
           <Button asChild className="bg-berkeley hover:bg-berkeley-deep text-white">
-            <Link to={credits > 0 ? '/app/create' : '/app/buy-credits'}>
-              <PlusCircle className="h-4 w-4 mr-2" />{credits > 0 ? 'Create Route' : 'Buy Credits'}
+            <Link to="/app/create">
+              <PlusCircle className="h-4 w-4 mr-2" />Create Route
             </Link>
           </Button>
         </div>
@@ -121,12 +126,10 @@ const MyRoutesPage = () => {
             <FolderOpen className="h-12 w-12 text-ink-soft/50 mb-4" />
             <h3 className="font-serifhead text-lg font-semibold mb-2">No routes yet</h3>
             <p className="text-ink-soft text-sm mb-4 text-center max-w-sm">
-              {credits > 0
-                ? 'Create your first transfer route to get a personalized dashboard.'
-                : 'Purchase route credits to get started with your transfer planning.'}
+              Create your first transfer route — it's free, and you'll get a personalized dashboard in minutes.
             </p>
             <Button asChild className="bg-berkeley hover:bg-berkeley-deep text-white">
-              <Link to={credits > 0 ? '/app/create' : '/app/buy-credits'}>{credits > 0 ? 'Create Your First Route' : 'View Pricing'}</Link>
+              <Link to="/app/create">Create Your First Route</Link>
             </Button>
           </CardContent>
         </Card>
