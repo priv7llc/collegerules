@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,7 +30,23 @@ const iconMap: Record<string, any> = {
 const RouteDashboardPage = () => {
   const { routeId } = useParams<{ routeId: string }>();
   const { user } = useAuth();
-  const { unlocked, availableSlots, redeemSlot } = useRouteUnlock(routeId);
+  const { unlocked, availableSlots, redeemSlot, refresh: refreshUnlock } = useRouteUnlock(routeId);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Apply an unlock purchase when Stripe sends the student back here
+  useEffect(() => {
+    if (!user || searchParams.get('payment') !== 'success') return;
+    (async () => {
+      try {
+        await supabase.functions.invoke('verify-payment');
+        toast.success('Unlocked! Everything on this route is open.');
+      } catch {
+        toast.error('Payment received — unlock may take a moment to appear.');
+      }
+      setSearchParams({}, { replace: true });
+      refreshUnlock();
+    })();
+  }, [user, searchParams, setSearchParams, refreshUnlock]);
   const [route, setRoute] = useState<any>(null);
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [checklist, setChecklist] = useState<Record<string, boolean>>({});

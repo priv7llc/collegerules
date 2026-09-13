@@ -35,7 +35,7 @@ serve(async (req) => {
     const name = unlock ? unlock.name : product.name;
     const amount = unlock ? unlock.price : product.price;
 
-    const successPath = return_path || (unlock ? '/app?payment=success' : '/app?payment=success');
+    const basePath = return_path || '/app';
 
     const sessionParams: any = {
       payment_method_types: ['card'],
@@ -48,8 +48,8 @@ serve(async (req) => {
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `${origin}${successPath}${successPath.includes('?') ? '&' : '?'}payment=success`,
-      cancel_url: `${origin}${return_path || '/app/buy-credits'}${(return_path || '').includes('?') ? '&' : '?'}payment=cancelled`,
+      success_url: `${origin}${basePath}${basePath.includes('?') ? '&' : '?'}payment=success`,
+      cancel_url: `${origin}${basePath}${basePath.includes('?') ? '&' : '?'}payment=cancelled`,
       client_reference_id: user_id,
       customer_email: user_email,
       metadata: unlock
