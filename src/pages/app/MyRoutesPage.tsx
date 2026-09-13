@@ -39,29 +39,28 @@ const statusPill: Record<string, { label: string; cls: string }> = {
 const MyRoutesPage = () => {
   const { user } = useAuth();
   const [routes, setRoutes] = useState<RouteRecord[]>([]);
-  const [credits, setCredits] = useState(0);
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
   const [unlimited, setUnlimited] = useState(false);
   const [slots, setSlots] = useState(0);
+  const [used, setUsed] = useState(0);
   const [progress, setProgress] = useState<Record<string, { done: number; total: number }>>({});
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const loadData = useCallback(async () => {
     if (!user) return;
-    const [{ data: routeData }, { data: creditData }, { data: summary }, { data: unlockRows }, { data: courseRows }] = await Promise.all([
+    const [{ data: routeData }, { data: summary }, { data: unlockRows }, { data: courseRows }] = await Promise.all([
       supabase.from('routes').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }),
-      supabase.rpc('get_remaining_credits', { _user_id: user.id }),
       supabase.rpc('unlock_summary', { _user_id: user.id }),
       supabase.from('route_unlocks').select('route_id').eq('user_id', user.id).not('route_id', 'is', null),
       supabase.from('course_progress').select('route_id,status'),
     ]);
 
     setRoutes((routeData as RouteRecord[]) || []);
-    setCredits((creditData as number) || 0);
     const s: any = Array.isArray(summary) ? summary[0] : summary;
     setUnlimited(!!s?.unlimited);
     setSlots(s?.available ?? 0);
+    setUsed(s?.used ?? 0);
     setUnlockedIds(new Set((unlockRows || []).map((r: any) => r.route_id)));
 
     const p: Record<string, { done: number; total: number }> = {};
