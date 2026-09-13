@@ -26,7 +26,7 @@ export const AppNav = () => {
     { to: '/app/applications', icon: ClipboardList, label: 'My Applications' },
     { to: '/app/account', icon: User, label: 'Account' },
     { to: '/app/support', icon: HelpCircle, label: 'Support' },
-    { to: '/app/buy-credits', icon: CreditCard, label: 'Buy Credits' },
+    { to: '/app/buy-credits', icon: CreditCard, label: 'Buy Unlocks' },
   ];
 
   const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
