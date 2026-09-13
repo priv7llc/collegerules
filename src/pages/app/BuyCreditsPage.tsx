@@ -107,12 +107,6 @@ const BuyCreditsPage = () => {
                     {f}
                   </li>
                 ))}
-                {product.extra && (
-                  <li className="flex items-start gap-2 text-sm font-medium">
-                    <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
-                    {product.extra}
-                  </li>
-                )}
               </ul>
               <Button
                 className="w-full mt-4"
