@@ -100,6 +100,17 @@ serve(async (req) => {
           });
         }
         unlocked += 1;
+      } else if (purchase && kind === 'writer') {
+        const tier = session.metadata?.writer_tier;
+        const expiresAt = tier === 'month'
+          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          : tier === 'three_month'
+          ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+          : null;
+        await supabaseAdmin.from('scholarship_writer_unlocks').insert({
+          user_id: user.id, tier, expires_at: expiresAt, purchase_id: purchase.id,
+        });
+        unlocked += 1;
       } else if (purchase && credits > 0) {
         // Add credits
         await supabaseAdmin.from('route_credits').insert({

@@ -62,6 +62,16 @@ serve(async (req) => {
           user_id: userId, route_id: routeId, unlock_type: 'single', purchase_id: purchase.id,
         });
       }
+    } else if (purchase && kind === 'writer') {
+      const tier = session.metadata?.writer_tier;
+      const expiresAt = tier === 'month'
+        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        : tier === 'three_month'
+        ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+      await supabase.from('scholarship_writer_unlocks').insert({
+        user_id: userId, tier, expires_at: expiresAt, purchase_id: purchase.id,
+      });
     } else if (purchase && credits > 0) {
       await supabase.from('route_credits').insert({
         user_id: userId,
