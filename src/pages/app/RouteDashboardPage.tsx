@@ -16,6 +16,7 @@ import {
 import { toast } from 'sonner';
 import { AffordabilityTab } from '@/components/AffordabilityTab';
 import type { DashboardPayload } from '@/lib/dashboardTypes';
+import { normalizeDashboardPayload } from '@/lib/normalizeDashboard';
 import { gePatternLabel, isTexasDestination } from '@/lib/transferOptions';
 import { Lock } from 'lucide-react';
 import { useRouteUnlock } from '@/hooks/useRouteUnlock';
@@ -67,7 +68,7 @@ const RouteDashboardPage = () => {
       ]);
       if (cancelled) return;
       setRoute(r);
-      if (d) setDashboard(d.dashboard_payload as unknown as DashboardPayload);
+      if (d) setDashboard(normalizeDashboardPayload(d.dashboard_payload));
       const clMap: Record<string, boolean> = {};
       cl?.forEach((c: any) => { clMap[c.item_key] = c.completed; });
       setChecklist(clMap);
