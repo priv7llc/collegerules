@@ -1,32 +1,27 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/contexts/AuthContext';
 import { GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
+import { lovable } from '@/integrations/lovable/index';
+import GoogleIcon from '@/components/auth/GoogleIcon';
 
 const SignupPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signUp } = useAuth();
-  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogle = async () => {
     setLoading(true);
-    const { error } = await signUp(email, password, fullName);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Account created! Check your email to confirm.');
-      navigate('/app');
+    const result = await lovable.auth.signInWithOAuth('google', {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      toast.error('Could not sign up with Google. Please try again.');
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+    if (result.redirected) return;
+    window.location.href = '/app';
   };
 
   return (
@@ -37,14 +32,17 @@ const SignupPage = () => {
           <CardTitle className="font-display text-2xl">Create your account</CardTitle>
           <CardDescription>Start planning your transfer today</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div><Label htmlFor="name">Full Name</Label><Input id="name" value={fullName} onChange={e => setFullName(e.target.value)} required /></div>
-            <div><Label htmlFor="email">Email</Label><Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required /></div>
-            <div><Label htmlFor="password">Password</Label><Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} /></div>
-            <Button type="submit" disabled={loading} className="w-full">{loading ? 'Creating account...' : 'Create Account'}</Button>
-          </form>
-          <p className="text-center text-sm text-muted-foreground mt-4">
+        <CardContent className="space-y-4">
+          <Button
+            onClick={handleGoogle}
+            disabled={loading}
+            variant="outline"
+            className="w-full h-11 gap-3 text-base"
+          >
+            <GoogleIcon className="h-5 w-5" />
+            {loading ? 'Opening Google...' : 'Continue with Google'}
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
             Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Log in</Link>
           </p>
         </CardContent>
